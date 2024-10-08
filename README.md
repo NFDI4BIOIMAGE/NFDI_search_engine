@@ -5,10 +5,12 @@ This repository is dedicated to enhancing the search functionality of the NFDI4B
 ## Overview
 
 The project leverages several key technologies:
-- **Elasticsearch**: For indexing and searching materials.
-- **React**: As the frontend framework for building a user-friendly interface.
-- **Flask**: Serving as the backend API to manage interactions with the database and Elasticsearch.
-- **Scroll API**: Used to efficiently handle large datasets during search queries.
+
+- **[Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)**: For indexing and searching materials.
+- **[React](https://react.dev/learn)**: As the frontend framework for building a user-friendly interface.
+- **[Flask](https://flask.palletsprojects.com/en/latest/)**: Serving as the backend API to manage interactions with the database and Elasticsearch.
+- **[Scroll API](https://www.elastic.co/guide/en/elasticsearch/reference/current/scroll-api.html)**: Used to efficiently handle large datasets during search queries.
+
 
 ## Quick Start with Docker
 
@@ -61,3 +63,7 @@ Once the Docker containers are running, you can access the application:
 
 If you'd like to contribute to the project, feel free to open an issue or submit a pull request.
 
+
+### Explanation:
+- The line "**Currently, this project is only supported on Windows.**" makes it clear that the project is currently Windows-only.
+- The note about waiting approximately 22 seconds after running `docker-compose up --build` informs users about the time it takes for Elasticsearch to fully initialize.
