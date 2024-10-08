@@ -18,6 +18,7 @@ To simplify the setup process, the project is containerized with Docker. Follow 
 
 ### Prerequisites
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
+- **Currently, this project is only supported on Windows.**
 
 ### Setup Instructions
 
@@ -38,25 +39,30 @@ To simplify the setup process, the project is containerized with Docker. Follow 
 
 This command will pull all necessary images, build the project, and start the containers.
 
+4. **Important**: After the initial setup, when you start the containers again by clicking the **Start** button in Docker Desktop, you will need to wait approximately **22 seconds** for Elasticsearch to fully initialize before the search engine becomes accessible.
+
+
 ## Accessing the Application
 
 Once the Docker containers are running, you can access the application:
 
 1. **Search Engine Interface**: Visit the website on `http://localhost:3000` to use the search engine. You'll see a user-friendly interface where you can search and explore the available training materials. Here's a preview of how the search engine looks:
 
-   (Insert image or screenshot here)
+  ![Search Engine ](./images/search_engine.png)
+
+  ![Search Engine Results](./images/search_results.png)
 
 2. **Submit Materials**: The project also includes a **material submission** platform that makes it easy for users to contribute new training materials. Simply visit `http://localhost:3000/submit-materials` and follow the instructions to upload new content.
+
+  ![Submit Materials](./images/submit_materials.png)
+
 
 ## Features
 
 - **Search Engine**: Find all the current training materials available on the NFDI4BioImage training website with easy-to-use search functionality.
   
-  ![Search Engine Results](./images/search_results.png)
 
 - **Material Submission**: A streamlined process for collecting and managing training materials via the submission portal.
-
-  ![Submit Materials](./images/submit_materials.png)
 
 
 ## Contributing
@@ -65,5 +71,5 @@ If you'd like to contribute to the project, feel free to open an issue or submit
 
 
 ### Explanation:
-- The line "**Currently, this project is only supported on Windows.**" makes it clear that the project is currently Windows-only.
-- The note about waiting approximately 22 seconds after running `docker-compose up --build` informs users about the time it takes for Elasticsearch to fully initialize.
+- "**Currently, this project is only supported on Windows.**
+
