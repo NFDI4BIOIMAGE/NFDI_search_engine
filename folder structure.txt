@@ -1,7 +1,7 @@
 ..
 ├── resources
 │   └── nfdi4bioimage.yml
-├── search_engine
+├── nfdi_search_engine_design
 │   ├── Elasticsearch
 │   ├── appsubmitter_backend
 │   │   ├── Dockerfile
@@ -72,8 +72,8 @@
 │   │       ├── timers-promises-mock
 │   │       └── webpack.config.js
 │   ├── .gitignore
-│   ├── elasticsearch username and Password
-│   ├── LICENSE
-│   └── README
+│   └── elasticsearch setup
+├── LICENSE
+├── README
 ├── docker-compose
 └── folder structure
