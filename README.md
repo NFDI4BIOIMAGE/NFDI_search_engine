@@ -70,6 +70,4 @@ Once the Docker containers are running, you can access the application:
 If you'd like to contribute to the project, feel free to open an issue or submit a pull request.
 
 
-### Explanation:
-- "**Currently, this project is only supported on Windows.**
 
