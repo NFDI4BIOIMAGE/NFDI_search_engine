@@ -1,0 +1,71 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false  # Disable security for development
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g  # Set JVM heap size
+      - network.host=0.0.0.0  # Ensure Elasticsearch is accessible from other containers
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+
+  appsubmitter_backend:
+    build:
+      context: ./search_engine/appsubmitter_backend
+      dockerfile: Dockerfile
+    container_name: flask_backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./resources:/app/resources
+    environment:
+      - GITHUB_API_KEY
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+    depends_on:
+      - elasticsearch
+
+  search_backend:
+    build:
+      context: ./search_engine/search/backend
+      dockerfile: Dockerfile
+    container_name: search_backend
+    environment:
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+    volumes:
+      - ./resources:/app/resources
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5001:5000"
+
+  frontend:
+    build:
+      context: ./search_engine/search/frontend
+      dockerfile: Dockerfile
+    container_name: react_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - appsubmitter_backend
+      - search_backend
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:5001
+
+volumes:
+  esdata:
+    driver: local
