@@ -22,6 +22,8 @@ To simplify the setup process, the project is containerized with Docker. Follow 
 1. Clone the repository:
    ```bash
    git clone https://github.com/NFDI4BIOIMAGE/nfdi_search_engine.git
+   ```
+   ```bash
    cd nfdi_search_engine
    ```
 
@@ -59,6 +61,3 @@ Once the Docker containers are running, you can access the application:
 
 If you'd like to contribute to the project, feel free to open an issue or submit a pull request.
 
----
-
-This README provides a comprehensive yet straightforward overview of your project and includes all the information a user needs to get started.
