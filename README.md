@@ -22,9 +22,9 @@ To simplify the setup process, the project is containerized with Docker. Follow 
    - You can refer to this [website](https://nfdi4bioimage.github.io/training/contributing/submit_app.html) for instructions on how to set up the API key or token.
    - This key/token should be securely stored and added to the necessary environment variables on your machine.
 
-2. - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
+2. **[Docker](https://www.docker.com/)** and **[Docker Compose](https://docs.docker.com/compose/install/)** installed on your machine.
 
-3. - **Currently, this project is only supported on Windows.**
+3. **Currently, this project is only supported on Windows.**
 
 ### Setup Instructions
 
