@@ -17,8 +17,14 @@ The project leverages several key technologies:
 To simplify the setup process, the project is containerized with Docker. Follow these steps to get the search engine up and running on your local machine.
 
 ### Prerequisites
-- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
-- **Currently, this project is only supported on Windows.**
+
+1. **GitHub API Key or Token**: The search engine requires access to GitHub for submitting and managing materials. Ensure that you have set up the necessary GitHub API keys or tokens on your machine.
+   - You can refer to this [website](https://nfdi4bioimage.github.io/training/contributing/submit_app.html) for instructions on how to set up the API key or token.
+   - This key/token should be securely stored and added to the necessary environment variables on your machine.
+
+2. - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
+
+3. - **Currently, this project is only supported on Windows.**
 
 ### Setup Instructions
 
