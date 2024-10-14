@@ -159,32 +159,40 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
         file_path = f"resources/{yaml_file}"
         file_contents = repo.get_contents(file_path)
         yaml_content = file_contents.decoded_content.decode('utf-8')
-        yaml_data = yaml.safe_load(yaml_content)
-        new_entry = {
-            'authors': authors,
-            'license': license,
-            'name': name,
-            'description': description,
-            'tags': tags,
-            'type': type_,
-            'url': url
-        }
-        if 'resources' in yaml_data:
-            yaml_data['resources'].append(new_entry)
-        else:
-            yaml_data['resources'] = [new_entry]
-        new_yaml_content = yaml.safe_dump(yaml_data, allow_unicode=True, sort_keys=False)
+
+        # Preserve original YAML content as is (no re-dumping)
+        original_content_lines = yaml_content.splitlines()
+
+        # Properly format new entry with the specific order of fields
+        new_entry = f"""
+- authors: {authors}
+  description: {description}
+  license: {license if not isinstance(license, list) else license[0]}
+  name: {name}
+  tags: {tags if not isinstance(tags, list) else ', '.join(tags)}
+  type: {type_ if not isinstance(type_, list) else ', '.join(type_)}
+  url: {url if not isinstance(url, list) else '\n  - ' + '\n  - '.join(url)}
+"""
+        
+        # Append the new entry at the end of the file
+        original_content_lines.append(new_entry.strip())
+
+        # Combine everything back into the final content (no YAML dumping)
+        new_yaml_content = "\n".join(original_content_lines)
+
         base_branch = repo.get_branch("main")
         timestamp = int(time.time())
         branch_name = f"update-{yaml_file.split('.')[0]}-{timestamp}".replace(' ', '-')
         repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=base_branch.commit.sha)
         repo.update_file(file_path, f"Add new entry", new_yaml_content, file_contents.sha, branch=branch_name)
+
         pr_title = f"Add new training materials request to {yaml_file}"
         pr_body = "Added new training materials."
         repo.create_pull(title=pr_title, body=pr_body, head=branch_name, base='main')
+
     except Exception as e:
         raise Exception(f"Failed to update YAML file and create pull request: {e}")
 
+
 if __name__ == '__main__':
-    # app.run(debug=True)
     app.run(host='0.0.0.0', port=5000, debug=True)
