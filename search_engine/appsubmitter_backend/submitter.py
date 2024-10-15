@@ -139,6 +139,8 @@ def submit_material():
     license = data.get('license')
     name = data.get('name')
     description = data.get('description')
+    num_downloads = data.get('num_downloads', '')
+    publication_date = data.get('publication_date', '')
     tags = data.get('tags')
     type_ = data.get('type')
     url = data.get('url')
@@ -148,15 +150,13 @@ def submit_material():
 
     repo = get_github_repository("NFDI4BIOIMAGE/training")
     try:
-        create_pull_request(repo, yaml_file, authors, license, name, description, tags, type_, url)
+        create_pull_request(repo, yaml_file, authors, license, name, description, num_downloads, publication_date, tags, type_, url)
         return jsonify({"message": "Pull request created successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def create_pull_request(repo, yaml_file, authors, license, name, description, tags, type_, url):
-    """
-    Create a pull request to add a new entry to a YAML file on GitHub.
-    """
+
+def create_pull_request(repo, yaml_file, authors, license, name, description, num_downloads, publication_date, tags, type_, url):
     try:
         file_path = f"resources/{yaml_file}"
         file_contents = repo.get_contents(file_path)
@@ -174,6 +174,8 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
   description: {description}
   license: {license if not isinstance(license, list) else license[0]}
   name: {name}
+  num_downloads: {num_downloads}
+  publication_date: {publication_date}
   tags: {tags if not isinstance(tags, list) else ', '.join(tags)}
   type: {type_ if not isinstance(type_, list) else ', '.join(type_)}
   submit_date: {submit_date}
@@ -198,7 +200,6 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
 
     except Exception as e:
         raise Exception(f"Failed to update YAML file and create pull request: {e}")
-
 
 
 if __name__ == '__main__':

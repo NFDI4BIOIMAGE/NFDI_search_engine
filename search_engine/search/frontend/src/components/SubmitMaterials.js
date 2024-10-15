@@ -10,6 +10,8 @@ const SubmitMaterials = () => {
     license: [],
     name: '',
     description: '',
+    num_downloads: '',
+    publication_date: '',
     tags: [],
     type: [],
     url: '',
@@ -25,8 +27,6 @@ const SubmitMaterials = () => {
         setUniqueLicenses(response.data.licenses);
       })
       .catch(error => console.error('Error fetching unique values:', error));
-
-    // No need to fetch YAML files since we're using a default
   }, []);
 
   const handleChange = (e) => {
@@ -103,6 +103,32 @@ const SubmitMaterials = () => {
         <div className="mb-3">
           <label htmlFor="description" className="form-label">Description</label>
           <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} placeholder="Enter description"></textarea>
+        </div>
+
+        {/* Number of Downloads */}
+        <div className="mb-3">
+          <label className="form-label">Number of Downloads</label>
+          <input 
+            type="number" 
+            className="form-control" 
+            name="num_downloads" 
+            value={formData.num_downloads} 
+            onChange={handleChange}
+            placeholder="Enter number of downloads"
+          />
+        </div>
+
+        {/* Publication Date */}
+        <div className="mb-3">
+          <label className="form-label">Publication Date</label>
+          <input 
+            type="date" 
+            className="form-control" 
+            name="publication_date" 
+            value={formData.publication_date} 
+            onChange={handleChange}
+            placeholder="Enter publication date"
+          />
         </div>
 
         {/* URL */}
