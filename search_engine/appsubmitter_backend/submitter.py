@@ -1,11 +1,13 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import os
 import yaml
 import time
-from github import Github
-from pathlib import Path
+import datetime
 import pandas as pd
+from pathlib import Path
+from github import Github
+from flask_cors import CORS
+from flask import Flask, request, jsonify
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS to allow requests from the React frontend
@@ -163,6 +165,9 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
         # Preserve original YAML content as is (no re-dumping)
         original_content_lines = yaml_content.splitlines()
 
+        # Get the current date in yyyy-mm-dd format
+        submit_date = datetime.datetime.now().strftime('%Y-%m-%d')
+
         # Properly format new entry with the specific order of fields
         new_entry = f"""
 - authors: {authors}
@@ -171,6 +176,7 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
   name: {name}
   tags: {tags if not isinstance(tags, list) else ', '.join(tags)}
   type: {type_ if not isinstance(type_, list) else ', '.join(type_)}
+  submit_date: {submit_date}
   url: {url if not isinstance(url, list) else '\n  - ' + '\n  - '.join(url)}
 """
         
@@ -192,6 +198,7 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
 
     except Exception as e:
         raise Exception(f"Failed to update YAML file and create pull request: {e}")
+
 
 
 if __name__ == '__main__':
