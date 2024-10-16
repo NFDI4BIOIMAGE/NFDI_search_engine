@@ -98,7 +98,6 @@ def get_yaml_files():
     yaml_files = sorted([str(yaml_file.name) for yaml_file in Path(resources_dir).glob('*.yml')])
     return jsonify(yaml_files)
 
-
 @app.route('/api/materials', methods=['GET'])
 def get_materials():
     """
@@ -117,7 +116,6 @@ def get_materials():
     materials = content['resources']  # Assuming all materials are stored under 'resources' key
     
     return jsonify(materials)
-
 
 def get_github_repository(repository):
     """
@@ -145,16 +143,17 @@ def submit_material():
     type_ = data.get('type')
     url = data.get('url')
 
-    # Set yaml_file to the default value
+    if num_downloads and int(num_downloads) < 0:
+        return jsonify({"error": "Number of downloads cannot be negative"}), 400
+    
+    #set the yaml file as default
     yaml_file = 'nfdi4bioimage.yml'
-
     repo = get_github_repository("NFDI4BIOIMAGE/training")
     try:
         create_pull_request(repo, yaml_file, authors, license, name, description, num_downloads, publication_date, tags, type_, url)
         return jsonify({"message": "Pull request created successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 def create_pull_request(repo, yaml_file, authors, license, name, description, num_downloads, publication_date, tags, type_, url):
     try:

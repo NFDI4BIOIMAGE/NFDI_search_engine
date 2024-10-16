@@ -68,6 +68,7 @@ const SubmitMaterialsPage = () => {
     if (!formData.authors) validationErrors.authors = 'Authors are required';
     if (!formData.name) validationErrors.name = 'Title is required';
     if (!formData.url) validationErrors.url = 'URL is required';
+    if (formData.num_downloads < 0) validationErrors.num_downloads = 'Number of downloads cannot be negative';
 
     setErrors(validationErrors);
 
@@ -192,7 +193,8 @@ const SubmitMaterialsPage = () => {
                 {/* Number of Downloads */}
                 <div className="mb-3">
                   <label className="form-label">Number of Downloads</label>
-                  <input type="number" className="form-control" name="num_downloads" value={formData.num_downloads} onChange={handleInputChange} placeholder="Enter number of downloads" />
+                  <input type="number" className={`form-control ${errors.num_downloads ? 'is-invalid' : ''}`} name="num_downloads" value={formData.num_downloads} onChange={handleInputChange} placeholder="Enter number of downloads" />
+                  {errors.num_downloads && <div className="invalid-feedback">{errors.num_downloads}</div>}
                 </div>
 
                 {/* Publication Date */}
