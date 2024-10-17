@@ -1,10 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import logging
-import os
+import requests  # New import for downloading the file from GitHub
 import yaml
 from elasticsearch import Elasticsearch, ConnectionError
-from pathlib import Path
 import time
 
 app = Flask(__name__)
@@ -14,9 +13,7 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Base path to the resources directory inside the Docker container
-base_path = Path('/app/resources')
-
+# Function to connect to Elasticsearch
 def connect_elasticsearch():
     es = None
     max_attempts = 60  # Increase the number of attempts
@@ -41,6 +38,22 @@ def connect_elasticsearch():
 
 es = connect_elasticsearch()
 
+# GitHub raw URL for the latest version of nfdi4bioimage.yml
+github_url = 'https://raw.githubusercontent.com/NFDI4BIOIMAGE/training/refs/heads/main/resources/nfdi4bioimage.yml'
+
+# Function to download the latest version of the YAML file from GitHub
+def download_yaml_file():
+    try:
+        response = requests.get(github_url)
+        response.raise_for_status()  # Raise error if the download fails
+        
+        yaml_content = response.text
+        logger.info("Downloaded the latest YAML file from GitHub")
+        return yaml.safe_load(yaml_content)  # Parse YAML content
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error downloading the YAML file: {e}")
+        return None
+
 # Function to delete the existing index
 def delete_index(index_name):
     try:
@@ -49,35 +62,30 @@ def delete_index(index_name):
     except Exception as e:
         logger.error(f"Error deleting index {index_name}: {e}")
 
-# Function to index YAML files
+# Function to index the downloaded YAML file content into Elasticsearch
 def index_yaml_files():
     try:
-        yaml_files = [f for f in os.listdir(base_path) if f.endswith('.yml') or f.endswith('.yaml')]
+        # Download the latest YAML file from GitHub
+        yaml_content = download_yaml_file()
+        if yaml_content is None:
+            raise Exception("Failed to download the YAML file from GitHub")
 
-        for file_name in yaml_files:
-            file_path = base_path / file_name
-            try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    content = yaml.safe_load(file)
-                    data = content.get('resources', [])
-                    logger.info(f"Indexing data from {file_path}")
-                    if isinstance(data, list):
-                        for item in data:
-                            try:
-                                if isinstance(item, dict):
-                                    es.index(index='bioimage-training', body=item)
-                                    logger.info(f"Indexed item: {item}")
-                                else:
-                                    logger.error(f"Item is not a dictionary: {item}")
-                            except Exception as e:
-                                logger.error(f"Error indexing item: {item} - {e}")
+        # Get the 'resources' section from the YAML file
+        data = yaml_content.get('resources', [])
+        if isinstance(data, list):
+            for item in data:
+                try:
+                    if isinstance(item, dict):
+                        es.index(index='bioimage-training', body=item)
+                        logger.info(f"Indexed item: {item}")
                     else:
-                        logger.error(f"Data is not a list: {data}")
-            except FileNotFoundError as e:
-                logger.error(f"File not found: {file_path} - {e}")
-            except yaml.YAMLError as e:
-                logger.error(f"Error reading YAML file: {file_path} - {e}")
+                        logger.error(f"Item is not a dictionary: {item}")
+                except Exception as e:
+                    logger.error(f"Error indexing item: {item} - {e}")
+        else:
+            logger.error(f"Data is not a list: {data}")
 
+        # Refresh the index after indexing is done
         es.indices.refresh(index='bioimage-training')
 
     except Exception as e:
@@ -140,6 +148,6 @@ def search():
 
 # Main entry point
 if __name__ == '__main__':
-    delete_index('bioimage-training')
-    index_yaml_files()
+    delete_index('bioimage-training')  # Optionally delete the index to refresh data
+    index_yaml_files()  # Index the latest data from the YAML file
     app.run(host='0.0.0.0', port=5000, debug=True)

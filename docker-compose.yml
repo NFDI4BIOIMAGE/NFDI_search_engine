@@ -24,7 +24,7 @@ services:
 
   appsubmitter_backend:
     build:
-      context: ./search_engine/appsubmitter_backend
+      context: ./search_engine/appsubmitter_backend  # Path to the appsubmitter backend
       dockerfile: Dockerfile
     container_name: flask_backend
     ports:
@@ -40,22 +40,20 @@ services:
 
   search_backend:
     build:
-      context: ./search_engine/search/backend
-      dockerfile: Dockerfile
+      context: ./search_engine/search/backend  # Path to the backend code
+      dockerfile: Dockerfile  # Reference the Dockerfile in backend
     container_name: search_backend
     environment:
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
-    volumes:
-      - ./resources:/app/resources
     depends_on:
       - elasticsearch
     ports:
-      - "5001:5000"
+      - "5001:5000"  # Expose port 5000 to 5001 on the host machine
 
   frontend:
     build:
-      context: ./search_engine/search/frontend
+      context: ./search_engine/search/frontend  # Path to the frontend code
       dockerfile: Dockerfile
     container_name: react_frontend
     ports:
