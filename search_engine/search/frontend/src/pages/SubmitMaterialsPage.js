@@ -16,6 +16,8 @@ const SubmitMaterialsPage = () => {
     license: [],
     name: '',
     description: '',
+    num_downloads: '',
+    publication_date: '',
     tags: [],
     type: [],
     url: '',
@@ -39,8 +41,6 @@ const SubmitMaterialsPage = () => {
         console.error('Error fetching unique values:', error);
         setHasLoaded(true);
       });
-
-    // No need to fetch YAML files since we have only one
   }, []);
 
   const handleChange = (selectedOptions, actionMeta) => {
@@ -68,6 +68,7 @@ const SubmitMaterialsPage = () => {
     if (!formData.authors) validationErrors.authors = 'Authors are required';
     if (!formData.name) validationErrors.name = 'Title is required';
     if (!formData.url) validationErrors.url = 'URL is required';
+    if (formData.num_downloads < 0) validationErrors.num_downloads = 'Number of downloads cannot be negative';
 
     setErrors(validationErrors);
 
@@ -86,6 +87,8 @@ const SubmitMaterialsPage = () => {
           license: [],
           name: '',
           description: '',
+          num_downloads: '',
+          publication_date: '',
           tags: [],
           type: [],
           url: '',
@@ -150,9 +153,7 @@ const SubmitMaterialsPage = () => {
                     options={uniqueLicenses.map(license => ({ value: license, label: license }))}
                     className="basic-multi-select"
                     classNamePrefix="select"
-                    value={uniqueLicenses
-                      .filter(license => formData.license.includes(license))
-                      .map(license => ({ value: license, label: license }))}
+                    value={uniqueLicenses.filter(license => formData.license.includes(license)).map(license => ({ value: license, label: license }))}
                     onChange={handleChange}
                   />
                 </div>
@@ -160,139 +161,74 @@ const SubmitMaterialsPage = () => {
                 {/* Title */}
                 <div className="mb-3">
                   <label className="form-label">Title</label>
-                  <input 
-                    type="text" 
-                    className={`form-control ${errors.name ? 'is-invalid' : ''}`} 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleInputChange}
-                    placeholder="Enter title"
-                  />
+                  <input type="text" className={`form-control ${errors.name ? 'is-invalid' : ''}`} name="name" value={formData.name} onChange={handleInputChange} placeholder="Enter title" />
                   {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                 </div>
 
                 {/* Authors */}
                 <div className="mb-3">
                   <label className="form-label">Authors</label>
-                  <input 
-                    type="text" 
-                    className={`form-control ${errors.authors ? 'is-invalid' : ''}`} 
-                    name="authors" 
-                    value={formData.authors} 
-                    onChange={handleInputChange}
-                    placeholder="Enter authors"
-                  />
+                  <input type="text" className={`form-control ${errors.authors ? 'is-invalid' : ''}`} name="authors" value={formData.authors} onChange={handleInputChange} placeholder="Enter authors" />
                   {errors.authors && <div className="invalid-feedback">{errors.authors}</div>}
                 </div>
 
                 {/* Tags */}
                 <div className="mb-3">
                   <label className="form-label">Tags</label>
-                  <CreatableSelect
-                    isMulti
-                    name="tags"
-                    options={uniqueTags.map(tag => ({ value: tag, label: tag }))}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                    value={formData.tags.map(tag => ({ value: tag, label: tag }))}
-                    onChange={handleChange}
-                    placeholder="Select or type tags..."
-                    noOptionsMessage={() => "Type to create a new tag"}
-                  />
+                  <CreatableSelect isMulti name="tags" options={uniqueTags.map(tag => ({ value: tag, label: tag }))} className="basic-multi-select" classNamePrefix="select" value={formData.tags.map(tag => ({ value: tag, label: tag }))} onChange={handleChange} placeholder="Select or type tags..." noOptionsMessage={() => "Type to create a new tag"} />
                 </div>
 
                 {/* Types */}
                 <div className="mb-3">
                   <label className="form-label">Types</label>
-                  <Select
-                    isMulti
-                    name="type"
-                    options={uniqueTypes.map(type => ({ value: type, label: type }))}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                    value={uniqueTypes
-                      .filter(type => formData.type.includes(type))
-                      .map(type => ({ value: type, label: type }))}
-                    onChange={handleChange}
-                  />
+                  <Select isMulti name="type" options={uniqueTypes.map(type => ({ value: type, label: type }))} className="basic-multi-select" classNamePrefix="select" value={uniqueTypes.filter(type => formData.type.includes(type)).map(type => ({ value: type, label: type }))} onChange={handleChange} />
                 </div>
 
                 {/* Description */}
                 <div className="mb-3">
                   <label className="form-label">Description</label>
-                  <textarea 
-                    className="form-control" 
-                    name="description" 
-                    value={formData.description} 
-                    onChange={handleInputChange}
-                    placeholder="Enter description"
-                    rows="4"
-                  ></textarea>
+                  <textarea className="form-control" name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description" rows="4"></textarea>
+                </div>
+
+                {/* Number of Downloads */}
+                <div className="mb-3">
+                  <label className="form-label">Number of Downloads</label>
+                  <input type="number" className={`form-control ${errors.num_downloads ? 'is-invalid' : ''}`} name="num_downloads" value={formData.num_downloads} onChange={handleInputChange} placeholder="Enter number of downloads" min="0" />
+                  {errors.num_downloads && <div className="invalid-feedback">{errors.num_downloads}</div>}
+                </div>
+
+                {/* Publication Date */}
+                <div className="mb-3">
+                  <label className="form-label">Publication Date</label>
+                  <input type="date" className="form-control" name="publication_date" value={formData.publication_date} onChange={handleInputChange} placeholder="Enter publication date" />
                 </div>
 
                 {/* URL */}
                 <div className="mb-3">
                   <label className="form-label">URL</label>
-                  <input 
-                    type="url" 
-                    className={`form-control ${errors.url ? 'is-invalid' : ''}`} 
-                    name="url" 
-                    value={formData.url} 
-                    onChange={handleInputChange}
-                    placeholder="Enter URL"
-                  />
+                  <input type="url" className={`form-control ${errors.url ? 'is-invalid' : ''}`} name="url" value={formData.url} onChange={handleInputChange} placeholder="Enter URL" />
                   {errors.url && <div className="invalid-feedback">{errors.url}</div>}
                 </div>
 
                 {/* Submit Button */}
                 <div className="text-center">
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
-                    disabled={isSubmitting}
-                    style={{ transition: 'all 0.3s ease' }}
-                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
-                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : 'Submit'}</button>
                 </div>
               </form>
-            ) : (
-              <p>Loading...</p>
-            )}
+            ) : <p>Loading...</p>}
           </div>
         </div>
       </div>
 
       {/* Modal for Submission Feedback */}
-      <Modal
-        show={showModal}
-        onHide={handleCloseModal}
-        centered
-        backdrop="static"
-        keyboard={false}
-      >
+      <Modal show={showModal} onHide={handleCloseModal} centered backdrop="static" keyboard={false}>
         <Modal.Header closeButton={!isSubmitting}>
           <Modal.Title>Submission Status</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {isSubmitting ? (
-            <div className="d-flex justify-content-center align-items-center">
-              <Spinner animation="border" variant="primary" />
-              <span className="ms-2">Submitting...</span>
-            </div>
-          ) : (
-            <p>{submissionStatus}</p>
-          )}
+          {isSubmitting ? <div className="d-flex justify-content-center align-items-center"><Spinner animation="border" variant="primary" /><span className="ms-2">Submitting...</span></div> : <p>{submissionStatus}</p>}
         </Modal.Body>
-        {!isSubmitting && (
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Close
-            </Button>
-          </Modal.Footer>
-        )}
+        {!isSubmitting && <Modal.Footer><Button variant="secondary" onClick={handleCloseModal}>Close</Button></Modal.Footer>}
       </Modal>
     </div>
   );

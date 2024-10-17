@@ -98,7 +98,6 @@ def get_yaml_files():
     yaml_files = sorted([str(yaml_file.name) for yaml_file in Path(resources_dir).glob('*.yml')])
     return jsonify(yaml_files)
 
-
 @app.route('/api/materials', methods=['GET'])
 def get_materials():
     """
@@ -117,7 +116,6 @@ def get_materials():
     materials = content['resources']  # Assuming all materials are stored under 'resources' key
     
     return jsonify(materials)
-
 
 def get_github_repository(repository):
     """
@@ -139,24 +137,25 @@ def submit_material():
     license = data.get('license')
     name = data.get('name')
     description = data.get('description')
+    num_downloads = data.get('num_downloads', '')
+    publication_date = data.get('publication_date', '')
     tags = data.get('tags')
     type_ = data.get('type')
     url = data.get('url')
 
-    # Set yaml_file to the default value
+    if num_downloads and int(num_downloads) < 0:
+        return jsonify({"error": "Number of downloads cannot be negative"}), 400
+    
+    #set the yaml file as default
     yaml_file = 'nfdi4bioimage.yml'
-
     repo = get_github_repository("NFDI4BIOIMAGE/training")
     try:
-        create_pull_request(repo, yaml_file, authors, license, name, description, tags, type_, url)
+        create_pull_request(repo, yaml_file, authors, license, name, description, num_downloads, publication_date, tags, type_, url)
         return jsonify({"message": "Pull request created successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def create_pull_request(repo, yaml_file, authors, license, name, description, tags, type_, url):
-    """
-    Create a pull request to add a new entry to a YAML file on GitHub.
-    """
+def create_pull_request(repo, yaml_file, authors, license, name, description, num_downloads, publication_date, tags, type_, url):
     try:
         file_path = f"resources/{yaml_file}"
         file_contents = repo.get_contents(file_path)
@@ -174,6 +173,8 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
   description: {description}
   license: {license if not isinstance(license, list) else license[0]}
   name: {name}
+  num_downloads: {num_downloads}
+  publication_date: {publication_date}
   tags: {tags if not isinstance(tags, list) else ', '.join(tags)}
   type: {type_ if not isinstance(type_, list) else ', '.join(type_)}
   submit_date: {submit_date}
@@ -198,7 +199,6 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, ta
 
     except Exception as e:
         raise Exception(f"Failed to update YAML file and create pull request: {e}")
-
 
 
 if __name__ == '__main__':
