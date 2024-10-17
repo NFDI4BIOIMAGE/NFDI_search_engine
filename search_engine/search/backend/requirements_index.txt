@@ -2,3 +2,4 @@ elasticsearch
 flask
 flask-cors
 pyyaml
+requests
