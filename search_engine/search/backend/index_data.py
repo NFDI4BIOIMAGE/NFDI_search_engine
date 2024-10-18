@@ -70,6 +70,28 @@ def index_yaml_files():
         if yaml_content is None:
             raise Exception("Failed to download the YAML file from GitHub")
 
+        # Define the index mapping for search-as-you-type
+        mapping = {
+            "mappings": {
+                "properties": {
+                    "name": {
+                        "type": "search_as_you_type"  # Enables search-as-you-type on name
+                    },
+                    "description": {
+                        "type": "search_as_you_type"  # Enables search-as-you-type on description
+                    },
+                    "tags": {"type": "text"},
+                    "authors": {"type": "text"},
+                    "type": {"type": "text"},
+                    "license": {"type": "text"},
+                    "url": {"type": "text"}
+                }
+            }
+        }
+
+        # Create the index with the new mapping
+        es.indices.create(index='bioimage-training', body=mapping, ignore=400)
+
         # Get the 'resources' section from the YAML file
         data = yaml_content.get('resources', [])
         if isinstance(data, list):
@@ -90,6 +112,7 @@ def index_yaml_files():
 
     except Exception as e:
         logger.error(f"Error indexing YAML files: {e}")
+
 
 # Flask route to return materials using the Scroll API (more efficient for large datasets)
 @app.route('/api/materials', methods=['GET'])
@@ -145,6 +168,29 @@ def search():
     except Exception as e:
         logger.error(f"Error searching in Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/suggest', methods=['GET'])
+def suggest():
+    try:
+        query = request.args.get('q', '')  # Get the partial search query
+        es_response = es.search(
+            index='bioimage-training',
+            body={
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["name", "description"],  # Search in name and description
+                        "type": "bool_prefix"  # Allows matching as-you-type queries
+                    }
+                }
+            }
+        )
+        suggestions = es_response['hits']['hits']
+        return jsonify([suggestion['_source'] for suggestion in suggestions])
+    except Exception as e:
+        logger.error(f"Error fetching suggestions from Elasticsearch: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 # Main entry point
 if __name__ == '__main__':
