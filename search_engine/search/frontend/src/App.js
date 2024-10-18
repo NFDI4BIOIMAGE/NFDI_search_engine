@@ -100,7 +100,9 @@ const App = () => {
     const licenseCounts = {};
 
     results.forEach(result => {
-      result._source.authors?.forEach(author => {
+      // Ensure authors is an array before calling forEach
+      const authors = Array.isArray(result._source.authors) ? result._source.authors : [];
+      authors.forEach(author => {
         authorCounts[author] = (authorCounts[author] || 0) + 1;
       });
 
@@ -109,16 +111,19 @@ const App = () => {
         publicationTitleCounts[publicationTitle] = (publicationTitleCounts[publicationTitle] || 0) + 1;
       }
 
+      // Ensure types is an array before iterating
       const types = Array.isArray(result._source.type) ? result._source.type : [];
       types.forEach(type => {
         typeCounts[type] = (typeCounts[type] || 0) + 1;
       });
 
+      // Ensure tags is an array before iterating
       const tags = Array.isArray(result._source.tags) ? result._source.tags : [];
       tags.forEach(tag => {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
       });
 
+      // Ensure license is treated as an array
       const licenses = Array.isArray(result._source.license) ? result._source.license : [result._source.license];
       licenses.forEach(license => {
         licenseCounts[license] = (licenseCounts[license] || 0) + 1;

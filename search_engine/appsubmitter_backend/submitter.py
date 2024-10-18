@@ -2,53 +2,48 @@ import os
 import yaml
 import time
 import datetime
+import requests  
 import pandas as pd
 from pathlib import Path
 from github import Github
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 
-
 app = Flask(__name__)
 CORS(app)  # Enable CORS to allow requests from the React frontend
 
-def load_yaml_data(file_path):
+# GitHub raw URL for the latest version of nfdi4bioimage.yml
+github_url = 'https://raw.githubusercontent.com/NFDI4BIOIMAGE/training/refs/heads/main/resources/nfdi4bioimage.yml'
+
+def download_yaml_file():
     """
-    Load YAML data from a file and modify it based on certain conditions.
+    Download the latest YAML file from GitHub.
     """
     try:
-        with open(file_path, 'r', encoding="utf8") as file:
-            data = yaml.safe_load(file)
-            app.logger.info(f"Loaded data from {file_path}: {data}")
-            
-            # Check for 'url' in data and append 'zenodo' to tags if the condition is met
-            if "url" in data and "zenodo" in str(data["url"]).lower():
-                if 'tags' in data and isinstance(data['tags'], list):
-                    data["tags"].append("zenodo")
-                else:
-                    data['tags'] = ["zenodo"]
-            
-            return data
-    except Exception as e:
-        app.logger.error(f"Error loading YAML data from {file_path}: {e}")
-        return None  # Return None in case of error
+        response = requests.get(github_url)
+        response.raise_for_status()  # Raise error if the download fails
+        yaml_content = response.text
+        app.logger.info("Downloaded the latest YAML file from GitHub")
+        return yaml.safe_load(yaml_content)  # Parse YAML content
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Error downloading the YAML file: {e}")
+        return None
 
-def all_content(directory_path):
+def all_content():
     """
-    Load all YAML data from a directory into a list of dictionaries.
+    Load all YAML data from GitHub into a list of dictionaries.
     """
     try:
         resources = []
-        for yaml_file in Path(directory_path).glob('*.yml'):
-            yaml_data = load_yaml_data(yaml_file)
-            if yaml_data and 'resources' in yaml_data:
-                resources.extend(yaml_data['resources'])
-            else:
-                app.logger.warning(f"No 'resources' key found in file {yaml_file} or file is empty.")
+        yaml_data = download_yaml_file()  # Use the downloaded YAML file
+        if yaml_data and 'resources' in yaml_data:
+            resources.extend(yaml_data['resources'])
+        else:
+            app.logger.warning("No 'resources' key found in the YAML file.")
         app.logger.info(f"All content loaded: {resources}")
         return {'resources': resources}
     except Exception as e:
-        app.logger.error(f"Error loading content from directory {directory_path}: {e}")
+        app.logger.error(f"Error loading content from GitHub: {e}")
         return {'resources': []}  # Return empty list in case of error
 
 @app.route('/api/get_unique_values', methods=['GET'])
@@ -56,16 +51,14 @@ def get_unique_values_from_yamls():
     """
     Get unique tags, types, and licenses from YAML files using pandas for data processing.
     """
-    # Adjust the path to the correct resources directory
-    resources_dir = Path('/app/resources')
-    app.logger.info(f"Loading resources from directory: {resources_dir}")
-    
-    content = all_content(resources_dir)
-    
+    app.logger.info(f"Loading resources from GitHub")
+
+    content = all_content()
+
     if not content['resources']:
         app.logger.warning("No resources found in the YAML files.")
         return jsonify({'tags': [], 'types': [], 'licenses': []})
-    
+
     df = pd.DataFrame(content['resources'])
 
     # Handle cases where 'tags', 'type', and 'license' might not be present or not lists
@@ -88,26 +81,14 @@ def get_unique_values_from_yamls():
         'licenses': unique_licenses
     })
 
-@app.route('/api/get_yaml_files', methods=['GET'])
-def get_yaml_files():
-    """
-    List YAML files in a directory.
-    """
-    resources_dir = Path('/app/resources')
-    app.logger.info(f"Listing YAML files from directory: {resources_dir}")
-    yaml_files = sorted([str(yaml_file.name) for yaml_file in Path(resources_dir).glob('*.yml')])
-    return jsonify(yaml_files)
-
 @app.route('/api/materials', methods=['GET'])
 def get_materials():
     """
     Endpoint to fetch all materials.
     """
-    # Adjust the path to the correct resources directory
-    resources_dir = Path('/app/resources')
-    app.logger.info(f"Loading materials from directory: {resources_dir}")
+    app.logger.info(f"Loading materials from GitHub")
     
-    content = all_content(resources_dir)
+    content = all_content()
     
     if not content['resources']:
         app.logger.warning("No resources found in the YAML files.")
@@ -146,7 +127,7 @@ def submit_material():
     if num_downloads and int(num_downloads) < 0:
         return jsonify({"error": "Number of downloads cannot be negative"}), 400
     
-    #set the yaml file as default
+    # Set the yaml file as default
     yaml_file = 'nfdi4bioimage.yml'
     repo = get_github_repository("NFDI4BIOIMAGE/training")
     try:
@@ -199,7 +180,6 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, nu
 
     except Exception as e:
         raise Exception(f"Failed to update YAML file and create pull request: {e}")
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

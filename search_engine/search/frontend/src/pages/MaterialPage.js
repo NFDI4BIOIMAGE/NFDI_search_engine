@@ -67,25 +67,31 @@ const MaterialPage = () => {
     const tags = {};
 
     data.forEach((item) => {
-      if (item.authors) {
+      // Ensure authors is an array before calling forEach
+      if (Array.isArray(item.authors)) {
         item.authors.forEach(author => {
           authors[author] = (authors[author] || 0) + 1;
         });
       }
-      // Removed publicationTitles facet generation
+
+      // Ensure license is treated as an array
       if (item.license) {
         const licenseArray = Array.isArray(item.license) ? item.license : [item.license];
         licenseArray.forEach(license => {
           licenses[license] = (licenses[license] || 0) + 1;
         });
       }
+
+      // Ensure type is treated as an array
       if (item.type) {
         const typeArray = Array.isArray(item.type) ? item.type : [item.type];
         typeArray.forEach(type => {
           types[type] = (types[type] || 0) + 1;
         });
       }
-      if (item.tags) {
+
+      // Ensure tags is an array before calling forEach
+      if (Array.isArray(item.tags)) {
         item.tags.forEach(tag => {
           tags[tag] = (tags[tag] || 0) + 1;
         });
@@ -94,7 +100,6 @@ const MaterialPage = () => {
 
     setFacets({
       authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
-      // Removed publicationTitles from facets
       licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
       types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
       tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
@@ -161,7 +166,6 @@ const MaterialPage = () => {
             {Object.keys(facets).length > 0 ? (
               <>
                 <FilterCard title="Authors" items={facets.authors || []} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                {/* Removed Publication Titles FilterCard */}
                 <FilterCard title="Licenses" items={facets.licenses || []} field="license" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 <FilterCard title="Types" items={facets.types || []} field="type" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 <FilterCard title="Tags" items={facets.tags || []} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
