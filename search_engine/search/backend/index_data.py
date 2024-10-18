@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import logging
-import requests  # New import for downloading the file from GitHub
+import requests
 import yaml
 from elasticsearch import Elasticsearch, ConnectionError
 import time
@@ -149,16 +149,19 @@ def get_materials():
 # Flask route for search functionality
 @app.route('/api/search', methods=['GET'])
 def search():
+    query = request.args.get('q', '')
+
+    # Basic sanitation of the query string
+    sanitized_query = query.replace('+', ' ').replace(':', '')
+
     try:
-        query = request.args.get('q', '')  # Get search query from the request
+        # Use match_phrase to ensure the whole phrase is matched exactly
         es_response = es.search(
             index='bioimage-training',
             body={
                 "query": {
-                    "query_string": {
-                        "query": f"*{query}*",
-                        "fields": ["name", "description", "tags", "authors", "type", "license", "url"],
-                        "default_operator": "AND"
+                    "match_phrase": {  # Change from multi_match to match_phrase for exact matching
+                        "name": sanitized_query  # Match against the name field exactly
                     }
                 }
             },
@@ -166,8 +169,10 @@ def search():
         )
         return jsonify(es_response['hits']['hits'])
     except Exception as e:
-        logger.error(f"Error searching in Elasticsearch: {e}")
+        # Log the error for debugging
+        print(f"Error searching in Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
+
     
 @app.route('/api/suggest', methods=['GET'])
 def suggest():
