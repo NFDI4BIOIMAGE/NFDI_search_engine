@@ -15,6 +15,7 @@ const SearchBar = ({ onSearch }) => {
     if (finalQuery.trim() !== '') {
       onSearch(finalQuery);
       navigate(`/search?q=${finalQuery}`);
+      setSuggestions([]);  // Clear suggestions after search
     }
   };
 
@@ -22,6 +23,16 @@ const SearchBar = ({ onSearch }) => {
     if (event.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  // Function to highlight query in suggestions with custom class
+  const highlightQuery = (text, query) => {
+    if (!query) return text;  // If no query, return the original text
+
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));  // Split by query, case-insensitive
+    return parts.map((part, index) => 
+      part.toLowerCase() === query.toLowerCase() ? <span key={index} className="suggestion_list_mark">{part}</span> : part
+    );
   };
 
   // Fetch suggestions as the user types
@@ -62,8 +73,14 @@ const SearchBar = ({ onSearch }) => {
       {suggestions.length > 0 && (
         <ul className="suggestion-list">
           {suggestions.map((suggestion, index) => (
-            <li key={index} onClick={() => handleSearch(suggestion.name)}>  {/* Pass suggestion to handleSearch */}
-              <span>{suggestion.name || suggestion.description}</span>
+            <li 
+              key={index} 
+              onClick={() => {
+                handleSearch(suggestion.name);  // Pass suggestion to handleSearch
+                setSuggestions([]);  // Clear suggestions when one is clicked
+              }}
+            >
+              <span>{highlightQuery(suggestion.name || suggestion.description, query)}</span> {/* Highlight the matched part */}
             </li>
           ))}
         </ul>

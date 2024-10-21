@@ -547,4 +547,12 @@ mark {
   .suggestion-list li span {
     color: black;  /* Ensure text is visible */
   }
+
+  .suggestion_list_mark {
+    background-color: yellow;  /* Customize the highlight color */
+    font-weight: bold;         /* Optionally make the text bold */
+    color: black;              /* Ensure good contrast */
+    padding: 0;
+  }
+  
   
