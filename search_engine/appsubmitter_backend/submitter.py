@@ -146,22 +146,25 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, nu
         original_content_lines = yaml_content.splitlines()
 
         # Get the current date in yyyy-mm-dd format
-        submit_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        submission_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
-        # Properly format new entry with the specific order of fields
-        new_entry = f"""
-- authors: {authors}
-  description: {description}
-  license: {license if not isinstance(license, list) else license[0]}
-  name: {name}
-  num_downloads: {num_downloads}
-  publication_date: {publication_date}
-  tags: {tags if not isinstance(tags, list) else ', '.join(tags)}
-  type: {type_ if not isinstance(type_, list) else ', '.join(type_)}
-  submit_date: {submit_date}
-  url: {url if not isinstance(url, list) else '\n  - ' + '\n  - '.join(url)}
-"""
-        
+        # Prepare the new entry with only non-empty fields
+        new_entry = f"- authors: {authors}\n"
+        if description:
+            new_entry += f"  description: {description}\n"
+        if license:
+            new_entry += f"  license: {license if not isinstance(license, list) else ', '.join(license)}\n"
+        new_entry += f"  name: {name}\n"
+        if publication_date:
+            new_entry += f"  publication_date: {publication_date}\n"
+        if tags:
+            new_entry += f"  tags: {', '.join(tags)}\n"
+        if type_:
+            new_entry += f"  type: {', '.join(type_)}\n"
+        new_entry += f"  submission_date: {submission_date}\n"
+        if url:
+            new_entry += f"  url: {url if not isinstance(url, list) else '\n  - ' + '\n  - '.join(url)}\n"
+
         # Append the new entry at the end of the file
         original_content_lines.append(new_entry.strip())
 
@@ -180,6 +183,7 @@ def create_pull_request(repo, yaml_file, authors, license, name, description, nu
 
     except Exception as e:
         raise Exception(f"Failed to update YAML file and create pull request: {e}")
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
