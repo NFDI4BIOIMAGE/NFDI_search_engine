@@ -10,7 +10,6 @@ const SubmitMaterials = () => {
     license: [],
     name: '',
     description: '',
-    num_downloads: '',
     publication_date: '',
     tags: [],
     type: [],
@@ -57,16 +56,6 @@ const SubmitMaterials = () => {
     <div className="container mt-5">
       <h2 className="mb-4">Submit New Training Materials</h2>
       <form onSubmit={handleSubmit}>
-        {/* License */}
-        <div className="mb-3">
-          <label htmlFor="license" className="form-label">License</label>
-          <select name="license" className="form-select" multiple value={formData.license} onChange={handleChange}>
-            {uniqueLicenses.map((license, index) => (
-              <option key={index} value={license}>{license}</option>
-            ))}
-          </select>
-        </div>
-
         {/* Title */}
         <div className="mb-3">
           <label htmlFor="name" className="form-label">Title</label>
@@ -77,6 +66,28 @@ const SubmitMaterials = () => {
         <div className="mb-3">
           <label htmlFor="authors" className="form-label">Authors</label>
           <input type="text" name="authors" className="form-control" value={formData.authors} onChange={handleChange} placeholder="Enter authors" />
+        </div>
+
+        {/* URL */}
+        <div className="mb-3">
+          <label htmlFor="url" className="form-label">URL</label>
+          <input type="text" name="url" className="form-control" value={formData.url} onChange={handleChange} placeholder="Enter URL" />
+        </div>
+
+        {/* Description */}
+        <div className="mb-3">
+          <label htmlFor="description" className="form-label">Description</label>
+          <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} placeholder="Enter description"></textarea>
+        </div>
+
+        {/* License */}
+        <div className="mb-3">
+          <label htmlFor="license" className="form-label">License</label>
+          <select name="license" className="form-select" multiple value={formData.license} onChange={handleChange}>
+            {uniqueLicenses.map((license, index) => (
+              <option key={index} value={license}>{license}</option>
+            ))}
+          </select>
         </div>
 
         {/* Tags */}
@@ -99,25 +110,6 @@ const SubmitMaterials = () => {
           </select>
         </div>
 
-        {/* Description */}
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
-          <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} placeholder="Enter description"></textarea>
-        </div>
-
-        {/* Number of Downloads */}
-        <div className="mb-3">
-          <label className="form-label">Number of Downloads</label>
-          <input 
-            type="number" 
-            className="form-control" 
-            name="num_downloads" 
-            value={formData.num_downloads} 
-            onChange={handleChange}
-            placeholder="Enter number of downloads"
-          />
-        </div>
-
         {/* Publication Date */}
         <div className="mb-3">
           <label className="form-label">Publication Date</label>
@@ -129,12 +121,6 @@ const SubmitMaterials = () => {
             onChange={handleChange}
             placeholder="Enter publication date"
           />
-        </div>
-
-        {/* URL */}
-        <div className="mb-3">
-          <label htmlFor="url" className="form-label">URL</label>
-          <input type="text" name="url" className="form-control" value={formData.url} onChange={handleChange} placeholder="Enter URL" />
         </div>
 
         {/* Submit Button */}

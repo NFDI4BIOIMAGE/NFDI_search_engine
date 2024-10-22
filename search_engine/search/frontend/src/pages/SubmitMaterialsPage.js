@@ -16,7 +16,6 @@ const SubmitMaterialsPage = () => {
     license: [],
     name: '',
     description: '',
-    num_downloads: '',
     publication_date: '',
     tags: [],
     type: [],
@@ -68,7 +67,6 @@ const SubmitMaterialsPage = () => {
     if (!formData.authors) validationErrors.authors = 'Authors are required';
     if (!formData.name) validationErrors.name = 'Title is required';
     if (!formData.url) validationErrors.url = 'URL is required';
-    if (formData.num_downloads < 0) validationErrors.num_downloads = 'Number of downloads cannot be negative';
 
     setErrors(validationErrors);
 
@@ -87,7 +85,6 @@ const SubmitMaterialsPage = () => {
           license: [],
           name: '',
           description: '',
-          num_downloads: '',
           publication_date: '',
           tags: [],
           type: [],
@@ -144,20 +141,6 @@ const SubmitMaterialsPage = () => {
             <h2 className="mb-4 text-center">Submit New Training Materials</h2>
             {hasLoaded ? (
               <form onSubmit={handleSubmit} className="p-4 border rounded bg-light shadow-sm">
-                {/* License */}
-                <div className="mb-3">
-                  <label className="form-label">License</label>
-                  <Select
-                    isMulti
-                    name="license"
-                    options={uniqueLicenses.map(license => ({ value: license, label: license }))}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                    value={uniqueLicenses.filter(license => formData.license.includes(license)).map(license => ({ value: license, label: license }))}
-                    onChange={handleChange}
-                  />
-                </div>
-
                 {/* Title */}
                 <div className="mb-3">
                   <label className="form-label">Title</label>
@@ -172,6 +155,33 @@ const SubmitMaterialsPage = () => {
                   {errors.authors && <div className="invalid-feedback">{errors.authors}</div>}
                 </div>
 
+                {/* URL */}
+                <div className="mb-3">
+                  <label className="form-label">URL</label>
+                  <input type="url" className={`form-control ${errors.url ? 'is-invalid' : ''}`} name="url" value={formData.url} onChange={handleInputChange} placeholder="Enter URL" />
+                  {errors.url && <div className="invalid-feedback">{errors.url}</div>}
+                </div>
+
+                {/* Description */}
+                <div className="mb-3">
+                  <label className="form-label">Description</label>
+                  <textarea className="form-control" name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description" rows="4"></textarea>
+                </div>
+
+                {/* License */}
+                <div className="mb-3">
+                  <label className="form-label">License</label>
+                  <Select
+                    isMulti
+                    name="license"
+                    options={uniqueLicenses.map(license => ({ value: license, label: license }))}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    value={uniqueLicenses.filter(license => formData.license.includes(license)).map(license => ({ value: license, label: license }))}
+                    onChange={handleChange}
+                  />
+                </div>
+
                 {/* Tags */}
                 <div className="mb-3">
                   <label className="form-label">Tags</label>
@@ -184,30 +194,10 @@ const SubmitMaterialsPage = () => {
                   <Select isMulti name="type" options={uniqueTypes.map(type => ({ value: type, label: type }))} className="basic-multi-select" classNamePrefix="select" value={uniqueTypes.filter(type => formData.type.includes(type)).map(type => ({ value: type, label: type }))} onChange={handleChange} />
                 </div>
 
-                {/* Description */}
-                <div className="mb-3">
-                  <label className="form-label">Description</label>
-                  <textarea className="form-control" name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description" rows="4"></textarea>
-                </div>
-
-                {/* Number of Downloads */}
-                <div className="mb-3">
-                  <label className="form-label">Number of Downloads</label>
-                  <input type="number" className={`form-control ${errors.num_downloads ? 'is-invalid' : ''}`} name="num_downloads" value={formData.num_downloads} onChange={handleInputChange} placeholder="Enter number of downloads" min="0" />
-                  {errors.num_downloads && <div className="invalid-feedback">{errors.num_downloads}</div>}
-                </div>
-
                 {/* Publication Date */}
                 <div className="mb-3">
                   <label className="form-label">Publication Date</label>
                   <input type="date" className="form-control" name="publication_date" value={formData.publication_date} onChange={handleInputChange} placeholder="Enter publication date" />
-                </div>
-
-                {/* URL */}
-                <div className="mb-3">
-                  <label className="form-label">URL</label>
-                  <input type="url" className={`form-control ${errors.url ? 'is-invalid' : ''}`} name="url" value={formData.url} onChange={handleInputChange} placeholder="Enter URL" />
-                  {errors.url && <div className="invalid-feedback">{errors.url}</div>}
                 </div>
 
                 {/* Submit Button */}
