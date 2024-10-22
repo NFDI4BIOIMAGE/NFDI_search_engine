@@ -16,7 +16,6 @@ const SubmitMaterialsPage = () => {
     license: [],
     name: '',
     description: '',
-    num_downloads: '',
     publication_date: '',
     tags: [],
     type: [],
@@ -64,11 +63,14 @@ const SubmitMaterialsPage = () => {
     setShowModal(true); // Show modal immediately when submission starts
     setSubmissionStatus(null); // Reset status for a new submission
 
+    // Validation for mandatory fields
     let validationErrors = {};
     if (!formData.authors) validationErrors.authors = 'Authors are required';
     if (!formData.name) validationErrors.name = 'Title is required';
     if (!formData.url) validationErrors.url = 'URL is required';
-    if (formData.num_downloads < 0) validationErrors.num_downloads = 'Number of downloads cannot be negative';
+    if (formData.license.length === 0) validationErrors.license = 'License is required';
+    if (formData.tags.length === 0) validationErrors.tags = 'Tags are required';
+    if (formData.type.length === 0) validationErrors.type = 'Types are required';
 
     setErrors(validationErrors);
 
@@ -87,7 +89,6 @@ const SubmitMaterialsPage = () => {
           license: [],
           name: '',
           description: '',
-          num_downloads: '',
           publication_date: '',
           tags: [],
           type: [],
@@ -144,70 +145,84 @@ const SubmitMaterialsPage = () => {
             <h2 className="mb-4 text-center">Submit New Training Materials</h2>
             {hasLoaded ? (
               <form onSubmit={handleSubmit} className="p-4 border rounded bg-light shadow-sm">
-                {/* License */}
-                <div className="mb-3">
-                  <label className="form-label">License</label>
-                  <Select
-                    isMulti
-                    name="license"
-                    options={uniqueLicenses.map(license => ({ value: license, label: license }))}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                    value={uniqueLicenses.filter(license => formData.license.includes(license)).map(license => ({ value: license, label: license }))}
-                    onChange={handleChange}
-                  />
-                </div>
-
                 {/* Title */}
                 <div className="mb-3">
-                  <label className="form-label">Title</label>
+                  <label className="form-label">Title <span style={{color: 'red'}}>*</span></label>
                   <input type="text" className={`form-control ${errors.name ? 'is-invalid' : ''}`} name="name" value={formData.name} onChange={handleInputChange} placeholder="Enter title" />
                   {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                 </div>
 
                 {/* Authors */}
                 <div className="mb-3">
-                  <label className="form-label">Authors</label>
+                  <label className="form-label">Authors <span style={{color: 'red'}}>*</span></label>
                   <input type="text" className={`form-control ${errors.authors ? 'is-invalid' : ''}`} name="authors" value={formData.authors} onChange={handleInputChange} placeholder="Enter authors" />
                   {errors.authors && <div className="invalid-feedback">{errors.authors}</div>}
                 </div>
 
-                {/* Tags */}
+                {/* URL */}
                 <div className="mb-3">
-                  <label className="form-label">Tags</label>
-                  <CreatableSelect isMulti name="tags" options={uniqueTags.map(tag => ({ value: tag, label: tag }))} className="basic-multi-select" classNamePrefix="select" value={formData.tags.map(tag => ({ value: tag, label: tag }))} onChange={handleChange} placeholder="Select or type tags..." noOptionsMessage={() => "Type to create a new tag"} />
-                </div>
-
-                {/* Types */}
-                <div className="mb-3">
-                  <label className="form-label">Types</label>
-                  <Select isMulti name="type" options={uniqueTypes.map(type => ({ value: type, label: type }))} className="basic-multi-select" classNamePrefix="select" value={uniqueTypes.filter(type => formData.type.includes(type)).map(type => ({ value: type, label: type }))} onChange={handleChange} />
+                  <label className="form-label">URL <span style={{color: 'red'}}>*</span></label>
+                  <input type="url" className={`form-control ${errors.url ? 'is-invalid' : ''}`} name="url" value={formData.url} onChange={handleInputChange} placeholder="Enter URL" />
+                  {errors.url && <div className="invalid-feedback">{errors.url}</div>}
                 </div>
 
                 {/* Description */}
                 <div className="mb-3">
-                  <label className="form-label">Description</label>
+                  <label className="form-label">Description (Optional)</label>
                   <textarea className="form-control" name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description" rows="4"></textarea>
                 </div>
 
-                {/* Number of Downloads */}
+                {/* License */}
                 <div className="mb-3">
-                  <label className="form-label">Number of Downloads</label>
-                  <input type="number" className={`form-control ${errors.num_downloads ? 'is-invalid' : ''}`} name="num_downloads" value={formData.num_downloads} onChange={handleInputChange} placeholder="Enter number of downloads" min="0" />
-                  {errors.num_downloads && <div className="invalid-feedback">{errors.num_downloads}</div>}
+                  <label className="form-label">License <span style={{color: 'red'}}>*</span></label>
+                  <Select
+                    isMulti
+                    name="license"
+                    options={uniqueLicenses.map(license => ({ value: license, label: license }))}
+                    className={`basic-multi-select ${errors.license ? 'is-invalid' : ''}`}
+                    classNamePrefix="select"
+                    value={uniqueLicenses.filter(license => formData.license.includes(license)).map(license => ({ value: license, label: license }))}
+                    onChange={handleChange}
+                  />
+                  {errors.license && <div className="invalid-feedback">{errors.license}</div>}
+                </div>
+
+                {/* Tags */}
+                <div className="mb-3">
+                  <label className="form-label">Tags <span style={{color: 'red'}}>*</span></label>
+                  <CreatableSelect 
+                    isMulti 
+                    name="tags" 
+                    options={uniqueTags.map(tag => ({ value: tag, label: tag }))} 
+                    className={`basic-multi-select ${errors.tags ? 'is-invalid' : ''}`} 
+                    classNamePrefix="select" 
+                    value={formData.tags.map(tag => ({ value: tag, label: tag }))} 
+                    onChange={handleChange} 
+                    placeholder="Select or type tags..." 
+                    noOptionsMessage={() => "Type to create a new tag"} 
+                  />
+                  {errors.tags && <div className="invalid-feedback">{errors.tags}</div>}
+                </div>
+
+                {/* Types */}
+                <div className="mb-3">
+                  <label className="form-label">Types <span style={{color: 'red'}}>*</span></label>
+                  <Select 
+                    isMulti 
+                    name="type" 
+                    options={uniqueTypes.map(type => ({ value: type, label: type }))} 
+                    className={`basic-multi-select ${errors.type ? 'is-invalid' : ''}`} 
+                    classNamePrefix="select" 
+                    value={uniqueTypes.filter(type => formData.type.includes(type)).map(type => ({ value: type, label: type }))} 
+                    onChange={handleChange} 
+                  />
+                  {errors.type && <div className="invalid-feedback">{errors.type}</div>}
                 </div>
 
                 {/* Publication Date */}
                 <div className="mb-3">
-                  <label className="form-label">Publication Date</label>
-                  <input type="date" className="form-control" name="publication_date" value={formData.publication_date} onChange={handleInputChange} placeholder="Enter publication date" />
-                </div>
-
-                {/* URL */}
-                <div className="mb-3">
-                  <label className="form-label">URL</label>
-                  <input type="url" className={`form-control ${errors.url ? 'is-invalid' : ''}`} name="url" value={formData.url} onChange={handleInputChange} placeholder="Enter URL" />
-                  {errors.url && <div className="invalid-feedback">{errors.url}</div>}
+                  <label className="form-label">Publication Date (Optional)</label>
+                  <input type="date" className="form-control" name="publication_date" value={formData.publication_date} onChange={handleInputChange} />
                 </div>
 
                 {/* Submit Button */}
