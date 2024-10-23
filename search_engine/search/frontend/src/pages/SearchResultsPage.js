@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 import SearchBar from '../components/SearchBar';
 import SearchResults from '../components/SearchResults';
 import FilterCard from '../components/FilterCard';
@@ -8,11 +10,37 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../assets/styles/style.css';
 import bgSearchbar from '../assets/images/bg-searchbar.jpg';
 
-const SearchResultsPage = ({ handleSearch, results, hasSearched, query, facets }) => {
-  // Initialize selectedFilters state with useState
+const SearchResultsPage = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const query = queryParams.get('q') || '';
+  const exactMatch = queryParams.get('exact_match') === 'true';
+
+  const [results, setResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);  // Add currentPage state
-  const [itemsPerPage, setItemsPerPage] = useState(10);  // Add itemsPerPage state
+  const [currentPage, setCurrentPage] = useState(1);  
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [facets, setFacets] = useState({ authors: [], types: [], tags: [], licenses: [] });
+
+  // Get the backend URL from environment variables
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
+  useEffect(() => {
+    if (query) {
+      axios.get(`${backendUrl}/api/search?q=${encodeURIComponent(query)}&exact_match=${exactMatch}`)
+        .then(response => {
+          setResults(response.data);
+          setHasSearched(true);
+          // Optionally update facets here
+        })
+        .catch(error => {
+          console.error('Error fetching search results:', error);
+        });
+    }
+  }, [query, exactMatch, backendUrl]);
+
+  // Rest of your code handling filters, pagination, etc.
 
   // Handle filter logic as before
   const handleFilter = (field, key) => {
@@ -90,7 +118,7 @@ const SearchResultsPage = ({ handleSearch, results, hasSearched, query, facets }
             <div className="col-lg-10 pt-lg-5 mt-lg-5 text-center">
               <h1 className="display-3 text-white mb-3 animated slideInDown">Search Results</h1>
               <div className="position-relative w-75 mx-auto animated slideInDown">
-                <SearchBar onSearch={(query) => { handleSearch(query); }} />
+                <SearchBar onSearch={(query) => { /* Handle search */ }} />
               </div>
             </div>
           </div>

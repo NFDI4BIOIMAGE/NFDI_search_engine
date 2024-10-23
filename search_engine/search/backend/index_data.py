@@ -150,32 +150,46 @@ def get_materials():
 @app.route('/api/search', methods=['GET'])
 def search():
     query = request.args.get('q', '')
+    exact_match = request.args.get('exact_match', 'false').lower() == 'true'
 
     # Basic sanitation of the query string
     sanitized_query = query.replace('+', ' ').replace(':', '')
 
     try:
-        # Use match_phrase to ensure the whole phrase is matched exactly
-        es_response = es.search(
-            index='bioimage-training',
-            body={
-                "query": {
-                    "multi_match": {
-                        "query": sanitized_query,
-                        "fields": ["name^3", "description", "tags", "authors", "type", "license"],
-                        "type": "best_fields" # General matching
+        if exact_match:
+            # Use match_phrase to ensure the whole phrase is matched exactly on the 'name' field
+            es_response = es.search(
+                index='bioimage-training',
+                body={
+                    "query": {
+                        "match_phrase": {
+                            "name": sanitized_query
+                        }
                     }
-                }
-            },
-            size=1000  # Retrieve up to 1000 results
-        )
+                },
+                size=1000  # Retrieve up to 1000 results
+            )
+        else:
+            # General search
+            es_response = es.search(
+                index='bioimage-training',
+                body={
+                    "query": {
+                        "multi_match": {
+                            "query": sanitized_query,
+                            "fields": ["name^3", "description", "tags", "authors", "type", "license"],
+                            "type": "best_fields"  # General matching
+                        }
+                    }
+                },
+                size=1000  # Retrieve up to 1000 results
+            )
         return jsonify(es_response['hits']['hits'])
     except Exception as e:
         # Log the error for debugging
         print(f"Error searching in Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
 
-    
 @app.route('/api/suggest', methods=['GET'])
 def suggest():
     try:
@@ -197,7 +211,6 @@ def suggest():
     except Exception as e:
         logger.error(f"Error fetching suggestions from Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 # Main entry point
 if __name__ == '__main__':
