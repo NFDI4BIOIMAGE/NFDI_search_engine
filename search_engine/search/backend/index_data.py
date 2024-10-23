@@ -160,8 +160,10 @@ def search():
             index='bioimage-training',
             body={
                 "query": {
-                    "match_phrase": {  # Change from multi_match to match_phrase for exact matching
-                        "name": sanitized_query  # Match against the name field exactly
+                    "multi_match": {
+                        "query": sanitized_query,
+                        "fields": ["name^3", "description", "tags", "authors", "type", "license"],
+                        "type": "best_fields" # General matching
                     }
                 }
             },
@@ -184,8 +186,8 @@ def suggest():
                 "query": {
                     "multi_match": {
                         "query": query,
-                        "fields": ["name", "description"],  # Search in name and description
-                        "type": "bool_prefix"  # Allows matching as-you-type queries
+                        "fields": ["name", "description"],  
+                        "type": "bool_prefix"  # Exactly matching
                     }
                 }
             }
