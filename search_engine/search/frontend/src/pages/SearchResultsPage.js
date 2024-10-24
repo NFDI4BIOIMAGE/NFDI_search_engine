@@ -32,15 +32,49 @@ const SearchResultsPage = () => {
         .then(response => {
           setResults(response.data);
           setHasSearched(true);
-          // Optionally update facets here
+
+          // Extract unique authors, licenses, types, and tags from the results to populate facets
+          const authors = {};
+          const licenses = {};
+          const types = {};
+          const tags = {};
+
+          response.data.forEach((item) => {
+            if (Array.isArray(item._source.authors)) {
+              item._source.authors.forEach(author => {
+                authors[author] = (authors[author] || 0) + 1;
+              });
+            }
+
+            const licenseArray = Array.isArray(item._source.license) ? item._source.license : [item._source.license];
+            licenseArray.forEach(license => {
+              licenses[license] = (licenses[license] || 0) + 1;
+            });
+
+            const typeArray = Array.isArray(item._source.type) ? item._source.type : [item._source.type];
+            typeArray.forEach(type => {
+              types[type] = (types[type] || 0) + 1;
+            });
+
+            if (Array.isArray(item._source.tags)) {
+              item._source.tags.forEach(tag => {
+                tags[tag] = (tags[tag] || 0) + 1;
+              });
+            }
+          });
+
+          setFacets({
+            authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
+            licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
+            types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
+            tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
+          });
         })
         .catch(error => {
           console.error('Error fetching search results:', error);
         });
     }
   }, [query, exactMatch, backendUrl]);
-
-  // Rest of your code handling filters, pagination, etc.
 
   // Handle filter logic as before
   const handleFilter = (field, key) => {
@@ -79,7 +113,7 @@ const SearchResultsPage = () => {
       if (!selectedFilters[field].length) return true;
 
       const actualField = correctFieldName(field);
-      const resultField = result[actualField] || result._source?.[actualField];
+      const resultField = result._source?.[actualField] || result[actualField];
 
       if (!resultField) return false;
 
@@ -131,10 +165,16 @@ const SearchResultsPage = () => {
           {/* Faceted Search Sidebar Start */}
           <div className="col-md-3">
             <h3>Filter by</h3>
-            <FilterCard title="Authors" items={facets.authors} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-            <FilterCard title="Types" items={facets.types} field="types" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-            <FilterCard title="Tags" items={facets.tags} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-            <FilterCard title="Licenses" items={facets.licenses} field="licenses" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+            {Object.keys(facets).length > 0 ? (
+              <>
+                <FilterCard title="Authors" items={facets.authors} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard title="Types" items={facets.types} field="types" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard title="Tags" items={facets.tags} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard title="Licenses" items={facets.licenses} field="licenses" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+              </>
+            ) : (
+              <p>No filters available.</p>
+            )}
           </div>
           {/* Faceted Search Sidebar End */}
 

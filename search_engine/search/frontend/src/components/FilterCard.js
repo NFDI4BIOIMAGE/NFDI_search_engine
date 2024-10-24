@@ -30,11 +30,11 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
             <li key={item.key}>
               <input
                 type="checkbox"
-                checked={selectedFilters[field]?.includes(item.key) || false} // Ensure `checked` is always a boolean
-                onChange={() => handleFilter(field, item.key)} // Toggle filter on change
+                checked={selectedFilters[field]?.includes(item.key) || false}
+                onChange={() => handleFilter(field, item.key)}
               />
               <label
-                className={selectedFilters[field]?.includes(item.key) ? 'highlighted' : ''} // Apply highlighted class if selected
+                className={selectedFilters[field]?.includes(item.key) ? 'highlighted' : ''}
               >
                 {item.key} ({item.doc_count})
               </label>
