@@ -10,11 +10,11 @@ const SearchBar = ({ onSearch }) => {
   // Get the backend URL from environment variables
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';  // Fallback if not set
 
-  const handleSearch = (searchQuery) => {
+  const handleSearch = (searchQuery, isExactMatch = false) => {
     const finalQuery = searchQuery || query;
     if (finalQuery.trim() !== '') {
-      onSearch(finalQuery);
-      navigate(`/search?q=${finalQuery}`);
+      onSearch(finalQuery, isExactMatch);
+      navigate(`/search?q=${encodeURIComponent(finalQuery)}&exact_match=${isExactMatch}`);
       setSuggestions([]);  // Clear suggestions after search
     }
   };
@@ -39,7 +39,7 @@ const SearchBar = ({ onSearch }) => {
   useEffect(() => {
     if (query.trim() !== '') {
       axios
-        .get(`${backendUrl}/api/suggest?q=${query}`)  // Use the correct backend URL here
+        .get(`${backendUrl}/api/suggest?q=${encodeURIComponent(query)}`)  // Use the correct backend URL here
         .then((response) => {
           setSuggestions(response.data);
         })
@@ -76,7 +76,7 @@ const SearchBar = ({ onSearch }) => {
             <li 
               key={index} 
               onClick={() => {
-                handleSearch(suggestion.name);  // Pass suggestion to handleSearch
+                handleSearch(suggestion.name, true);  // Pass suggestion to handleSearch with exact match
                 setSuggestions([]);  // Clear suggestions when one is clicked
               }}
             >
