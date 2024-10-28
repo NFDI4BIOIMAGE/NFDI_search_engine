@@ -24,7 +24,7 @@ services:
 
   appsubmitter_backend:
     build:
-      context: ./search_engine/appsubmitter_backend  # Path to the appsubmitter backend
+      context: ./search_engine/appsubmitter_backend
       dockerfile: Dockerfile
     container_name: flask_backend
     ports:
@@ -40,8 +40,8 @@ services:
 
   search_backend:
     build:
-      context: ./search_engine/search/backend  # Path to the backend code
-      dockerfile: Dockerfile  # Reference the Dockerfile in backend
+      context: ./search_engine/search/backend
+      dockerfile: Dockerfile
     container_name: search_backend
     environment:
       - ELASTICSEARCH_HOST=elasticsearch
@@ -49,7 +49,9 @@ services:
     depends_on:
       - elasticsearch
     ports:
-      - "5001:5000"  # Expose port 5000 to 5001 on the host machine
+      - "5001:5000"
+    volumes:
+      - ./search_engine/search/backend/wordcloud/static:/app/static
 
   frontend:
     build:
@@ -63,6 +65,19 @@ services:
       - search_backend
     environment:
       - REACT_APP_BACKEND_URL=http://localhost:5001
+
+  wordcloud_generator:
+    build:
+      context: ./search_engine/search/backend/wordcloud
+      dockerfile: Dockerfile
+    container_name: wordcloud_generator
+    volumes:
+      - ./search_engine/search/backend/wordcloud/static:/app/static
+    environment:
+      - ELASTICSEARCH_HOST=elasticsearch
+      - ELASTICSEARCH_PORT=9200
+    depends_on:
+      - elasticsearch
 
 volumes:
   esdata:
