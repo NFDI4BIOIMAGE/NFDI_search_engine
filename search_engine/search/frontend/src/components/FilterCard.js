@@ -9,6 +9,12 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
   const sortedItems = items.sort((a, b) => a.key.localeCompare(b.key));
   const displayedItems = showAll ? sortedItems : sortedItems.slice(0, 5);
 
+  // Reset showAll and collapsed whenever items change (new search results)
+  useEffect(() => {
+    setShowAll(false);
+    setCollapsed(true);
+  }, [items]);
+
   useEffect(() => {
     if (collapsed) {
       containerRef.current.style.maxHeight = '0';
