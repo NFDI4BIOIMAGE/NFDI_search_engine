@@ -26,6 +26,11 @@ const SearchResultsPage = () => {
   // Get the backend URL from environment variables
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
+  // Clear selected filters on new search
+  useEffect(() => {
+    setSelectedFilters({});
+  }, [query]);
+
   useEffect(() => {
     if (query) {
       axios.get(`${backendUrl}/api/search?q=${encodeURIComponent(query)}&exact_match=${exactMatch}`)
@@ -167,10 +172,10 @@ const SearchResultsPage = () => {
             <h3>Filter by</h3>
             {Object.keys(facets).length > 0 ? (
               <>
-                <FilterCard title="Licenses" items={facets.licenses} field="licenses" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                <FilterCard title="Authors" items={facets.authors} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                <FilterCard title="Types" items={facets.types} field="types" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                <FilterCard title="Tags" items={facets.tags} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard key={`Licenses-${query}`} title="Licenses" items={facets.licenses} field="licenses" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard key={`Authors-${query}`} title="Authors" items={facets.authors} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard key={`Types-${query}`} title="Types" items={facets.types} field="types" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                <FilterCard key={`Tags-${query}`} title="Tags" items={facets.tags} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
               </>
             ) : (
               <p>No filters available.</p>
