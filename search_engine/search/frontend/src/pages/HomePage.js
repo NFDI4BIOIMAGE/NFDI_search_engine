@@ -29,7 +29,7 @@ const HomePage = ({ handleSearch }) => (
         <div className="row g-5">
           <div className="col-lg-6 wow fadeInUp" data-wow-delay="0.1s" style={{ minHeight: '400px' }}>
             <div className="position-relative h-100">
-              <img className="img-fluid position-absolute w-100 h-100" src="path-to-about-image" alt="" style={{ objectFit: 'cover' }} />
+              <img className="img-fluid position-absolute w-100 h-100" src="http://localhost:5001/static/wordcloud.png" alt="Word Cloud" style={{ objectFit: 'contain' }} />
             </div>
           </div>
           <div className="col-lg-6 wow fadeInUp" data-wow-delay="0.3s">

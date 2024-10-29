@@ -2,8 +2,6 @@
 ├── images
 │   ├── search_results.png
 │   └── submit_materials.png
-├── resources
-│   └── nfdi4bioimage.yml
 ├── nfdi_search_engine_design
 │   ├── Elasticsearch
 │   ├── appsubmitter_backend
