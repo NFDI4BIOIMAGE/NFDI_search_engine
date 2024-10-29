@@ -6,22 +6,29 @@ import yaml
 from elasticsearch import Elasticsearch, ConnectionError
 import time
 
+# Initializing Flask app and enabling CORS
 app = Flask(__name__)
 CORS(app)
 
-# Set up logging
+# Set up logging to provide useful information and error messages
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Function to connect to Elasticsearch
+# Function to connect to Elasticsearch with multiple retry attempts
 def connect_elasticsearch():
+    """
+    Attempts to connect to Elasticsearch. Retries up to a specified number of attempts if connection fails.
+
+    Returns:
+        Elasticsearch: Connected Elasticsearch instance, or raises an Exception after several failed attempts.
+    """
     es = None
-    max_attempts = 60  # Increase the number of attempts
+    max_attempts = 60  # Number of attempts to try connecting to Elasticsearch
     for attempt in range(max_attempts):
         try:
             es = Elasticsearch(
                 [{'host': 'elasticsearch', 'port': 9200, 'scheme': 'http'}],
-                timeout=30  # Increase timeout for each request
+                timeout=30  # Extended timeout for requests
             )
             if es.ping():
                 logger.info("Connected to Elasticsearch")
@@ -30,56 +37,66 @@ def connect_elasticsearch():
                 logger.error("Elasticsearch ping failed")
         except ConnectionError:
             logger.error(f"Elasticsearch not ready, attempt {attempt+1}/{max_attempts}, retrying in 10 seconds...")
-            time.sleep(10)  # Increase the interval between retries
+            time.sleep(10)  # Delay between retry attempts
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             time.sleep(10)
     raise Exception("Could not connect to Elasticsearch after several attempts")
 
+# Connect to Elasticsearch and handle errors if unable to connect
 es = connect_elasticsearch()
 
-# GitHub raw URL for the latest version of nfdi4bioimage.yml
+# URL for fetching the latest YAML file with bioimage training resources from GitHub
 github_url = 'https://raw.githubusercontent.com/NFDI4BIOIMAGE/training/refs/heads/main/resources/nfdi4bioimage.yml'
 
-# Function to download the latest version of the YAML file from GitHub
+# Function to download and parse YAML data from the specified GitHub URL
 def download_yaml_file():
+    """
+    Downloads the YAML file from GitHub and parses it.
+
+    Returns:
+        dict: Parsed YAML content if successful, otherwise None.
+    """
     try:
         response = requests.get(github_url)
-        response.raise_for_status()  # Raise error if the download fails
-        
+        response.raise_for_status()
         yaml_content = response.text
         logger.info("Downloaded the latest YAML file from GitHub")
-        return yaml.safe_load(yaml_content)  # Parse YAML content
+        return yaml.safe_load(yaml_content)
     except requests.exceptions.RequestException as e:
         logger.error(f"Error downloading the YAML file: {e}")
         return None
 
-# Function to delete the existing index
+# Function to delete the Elasticsearch index if it exists
 def delete_index(index_name):
+    """
+    Deletes an existing Elasticsearch index.
+
+    Args:
+        index_name (str): The name of the Elasticsearch index to delete.
+    """
     try:
         es.indices.delete(index=index_name, ignore=[400, 404])
         logger.info(f"Deleted existing index: {index_name}")
     except Exception as e:
         logger.error(f"Error deleting index {index_name}: {e}")
 
-# Function to index the downloaded YAML file content into Elasticsearch
+# Function to index resources from the downloaded YAML file into Elasticsearch
 def index_yaml_files():
+    """
+    Downloads the latest YAML data and indexes its content into Elasticsearch for search functionality.
+    """
     try:
-        # Download the latest YAML file from GitHub
         yaml_content = download_yaml_file()
         if yaml_content is None:
             raise Exception("Failed to download the YAML file from GitHub")
 
-        # Define the index mapping for search-as-you-type
+        # Set up index mapping with search-as-you-type enabled for specific fields
         mapping = {
             "mappings": {
                 "properties": {
-                    "name": {
-                        "type": "search_as_you_type"  # Enables search-as-you-type on name
-                    },
-                    "description": {
-                        "type": "search_as_you_type"  # Enables search-as-you-type on description
-                    },
+                    "name": {"type": "search_as_you_type"},
+                    "description": {"type": "search_as_you_type"},
                     "tags": {"type": "text"},
                     "authors": {"type": "text"},
                     "type": {"type": "text"},
@@ -89,10 +106,10 @@ def index_yaml_files():
             }
         }
 
-        # Create the index with the new mapping
+        # Create the Elasticsearch index with the specified mapping
         es.indices.create(index='bioimage-training', body=mapping, ignore=400)
 
-        # Get the 'resources' section from the YAML file
+        # Index each resource item from the 'resources' section of the YAML file
         data = yaml_content.get('resources', [])
         if isinstance(data, list):
             for item in data:
@@ -107,22 +124,27 @@ def index_yaml_files():
         else:
             logger.error(f"Data is not a list: {data}")
 
-        # Refresh the index after indexing is done
+        # Refresh the index to make indexed documents searchable
         es.indices.refresh(index='bioimage-training')
 
     except Exception as e:
         logger.error(f"Error indexing YAML files: {e}")
 
-
-# Flask route to return materials using the Scroll API (more efficient for large datasets)
+# Route for fetching all materials using Elasticsearch's Scroll API
 @app.route('/api/materials', methods=['GET'])
 def get_materials():
+    """
+    Fetches all indexed materials from Elasticsearch and returns them in a paginated format.
+
+    Returns:
+        JSON response with materials or error message.
+    """
     try:
         materials = []
-        scroll_time = '2m'  # Time window for each scroll
-        scroll_size = 1000  # Number of documents per scroll request
+        scroll_time = '2m'
+        scroll_size = 1000
 
-        # Initial request for the first scroll
+        # Initiate a scroll to retrieve data in batches
         response = es.search(
             index='bioimage-training',
             scroll=scroll_time,
@@ -130,11 +152,10 @@ def get_materials():
             body={"query": {"match_all": {}}}
         )
 
-        # Get the scroll ID and first batch of results
         scroll_id = response['_scroll_id']
         materials += [doc['_source'] for doc in response['hits']['hits']]
 
-        # Keep fetching while there are still results
+        # Continue scrolling until all data is retrieved
         while len(response['hits']['hits']) > 0:
             response = es.scroll(scroll_id=scroll_id, scroll=scroll_time)
             scroll_id = response['_scroll_id']
@@ -146,31 +167,31 @@ def get_materials():
         logger.error(f"Error fetching data from Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
 
-# Flask route for search functionality
+# Route for search functionality in Elasticsearch with optional exact match
 @app.route('/api/search', methods=['GET'])
 def search():
+    """
+    Searches indexed materials in Elasticsearch based on user query. Supports exact matches on 'name' field.
+
+    Returns:
+        JSON response with search results or error message.
+    """
     query = request.args.get('q', '')
     exact_match = request.args.get('exact_match', 'false').lower() == 'true'
-
-    # Basic sanitation of the query string
     sanitized_query = query.replace('+', ' ').replace(':', '')
 
     try:
         if exact_match:
-            # Use match_phrase to ensure the whole phrase is matched exactly on the 'name' field
             es_response = es.search(
                 index='bioimage-training',
                 body={
                     "query": {
-                        "match_phrase": {
-                            "name": sanitized_query
-                        }
+                        "match_phrase": {"name": sanitized_query}
                     }
                 },
-                size=1000  # Retrieve up to 1000 results
+                size=1000
             )
         else:
-            # General search
             es_response = es.search(
                 index='bioimage-training',
                 body={
@@ -178,30 +199,36 @@ def search():
                         "multi_match": {
                             "query": sanitized_query,
                             "fields": ["name^3", "description", "tags", "authors", "type", "license"],
-                            "type": "best_fields"  # General matching
+                            "type": "best_fields"
                         }
                     }
                 },
-                size=1000  # Retrieve up to 1000 results
+                size=1000
             )
         return jsonify(es_response['hits']['hits'])
     except Exception as e:
-        # Log the error for debugging
-        print(f"Error searching in Elasticsearch: {e}")
+        logger.error(f"Error searching in Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
 
+# Route for providing search suggestions based on partial query
 @app.route('/api/suggest', methods=['GET'])
 def suggest():
+    """
+    Provides search suggestions for auto-complete functionality based on partial user query.
+
+    Returns:
+        JSON response with suggested matches or error message.
+    """
     try:
-        query = request.args.get('q', '')  # Get the partial search query
+        query = request.args.get('q', '')
         es_response = es.search(
             index='bioimage-training',
             body={
                 "query": {
                     "multi_match": {
                         "query": query,
-                        "fields": ["name", "description"],  
-                        "type": "bool_prefix"  # Exactly matching
+                        "fields": ["name", "description"],
+                        "type": "bool_prefix"
                     }
                 }
             }
@@ -212,8 +239,8 @@ def suggest():
         logger.error(f"Error fetching suggestions from Elasticsearch: {e}")
         return jsonify({"error": str(e)}), 500
 
-# Main entry point
+# Main entry point to optionally delete the index, reindex data, and run the Flask app
 if __name__ == '__main__':
-    delete_index('bioimage-training')  # Optionally delete the index to refresh data
-    index_yaml_files()  # Index the latest data from the YAML file
+    delete_index('bioimage-training')
+    index_yaml_files()
     app.run(host='0.0.0.0', port=5000, debug=True)
