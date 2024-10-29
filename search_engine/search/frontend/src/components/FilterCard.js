@@ -5,7 +5,9 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
   const [showAll, setShowAll] = useState(false);
   const containerRef = useRef(null);
 
-  const displayedItems = showAll ? items : items.slice(0, 5);
+  // Sort items alphabetically by their key before displaying
+  const sortedItems = items.sort((a, b) => a.key.localeCompare(b.key));
+  const displayedItems = showAll ? sortedItems : sortedItems.slice(0, 5);
 
   useEffect(() => {
     if (collapsed) {
