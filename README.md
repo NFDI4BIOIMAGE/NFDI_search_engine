@@ -52,13 +52,21 @@ This command will pull all necessary images, build the project, and start the co
 
 Once the Docker containers are running, you can access the application:
 
-1. **Search Engine Interface**: Visit the website on `http://localhost:3000` to use the search engine. You'll see a user-friendly interface where you can search and explore the available training materials. Here's a preview of how the search engine looks:
+1. **Search Engine Interface**: Visit 'http://localhost:3000' to access the search engine. You’ll find a user-friendly interface that allows you to search and browse a variety of training materials related to bioimage analysis.
 
-  ![Search Engine ](./images/search_engine.png)
+  ![Search Engine](./images/search_engine.png)
 
   ![Search Engine Results](./images/search_results.png)
 
-2. **Submit Materials**: The project also includes a **material submission** platform that makes it easy for users to contribute new training materials. Simply visit `http://localhost:3000/submit-materials` and follow the instructions to upload new content.
+2. **Real-Time Search Suggestions**: As you type in the search bar, real-time search suggestions will appear, helping you quickly locate relevant materials. The suggestions provide specific document titles based on your query, making it easier to find exactly what you need.
+
+  ![Search Engine Suggestion](./images/search_engine_2.png)
+
+3. **View All Training Materials**: Explore all available training materials in the Materials section, where resources are displayed in a paginated, organized format. Use the filters on the left to sort materials by Authors, Tags, Types, and Licenses to refine your search results further.
+
+  ![Materials](./images/materials.png)
+
+4. **Submit Materials**: Contribute to the platform by submitting new training materials through the Submit Materials page. Navigate to 'http://localhost:3000/' submit-materials and complete the form to add your content. Fields marked with * are required, while fields labeled as "Optional" can be filled in at your discretion.
 
   ![Submit Materials](./images/submit_materials.png)
 
