@@ -10,7 +10,7 @@ from flask_cors import CORS
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from the React frontend
+CORS(app) 
 
 # GitHub raw URL for the latest version of nfdi4bioimage.yml
 github_url = 'https://raw.githubusercontent.com/NFDI4BIOIMAGE/training/refs/heads/main/resources/nfdi4bioimage.yml'
@@ -21,10 +21,10 @@ def download_yaml_file():
     """
     try:
         response = requests.get(github_url)
-        response.raise_for_status()  # Raise error if the download fails
+        response.raise_for_status()
         yaml_content = response.text
         app.logger.info("Downloaded the latest YAML file from GitHub")
-        return yaml.safe_load(yaml_content)  # Parse YAML content
+        return yaml.safe_load(yaml_content) 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"Error downloading the YAML file: {e}")
         return None
@@ -35,7 +35,7 @@ def all_content():
     """
     try:
         resources = []
-        yaml_data = download_yaml_file()  # Use the downloaded YAML file
+        yaml_data = download_yaml_file()
         if yaml_data and 'resources' in yaml_data:
             resources.extend(yaml_data['resources'])
         else:
@@ -92,9 +92,9 @@ def get_materials():
     
     if not content['resources']:
         app.logger.warning("No resources found in the YAML files.")
-        return jsonify([])  # Return an empty list if no resources are found
+        return jsonify([]) 
     
-    materials = content['resources']  # Assuming all materials are stored under 'resources' key
+    materials = content['resources']
     
     return jsonify(materials)
 
