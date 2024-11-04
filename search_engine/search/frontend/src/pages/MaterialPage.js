@@ -15,7 +15,7 @@ const MaterialPage = () => {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Default items per page
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     const savedFilters = JSON.parse(localStorage.getItem('selectedFilters'));
@@ -27,9 +27,7 @@ const MaterialPage = () => {
       try {
         const response = await fetch('http://localhost:5000/api/materials', {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (!response.ok) {
@@ -65,16 +63,16 @@ const MaterialPage = () => {
     const licenses = {};
     const types = {};
     const tags = {};
+    const publicationDates = {};
+    const submitDates = {};
 
     data.forEach((item) => {
-      // Ensure authors is an array before calling forEach
       if (Array.isArray(item.authors)) {
         item.authors.forEach(author => {
           authors[author] = (authors[author] || 0) + 1;
         });
       }
 
-      // Ensure license is treated as an array
       if (item.license) {
         const licenseArray = Array.isArray(item.license) ? item.license : [item.license];
         licenseArray.forEach(license => {
@@ -82,7 +80,6 @@ const MaterialPage = () => {
         });
       }
 
-      // Ensure type is treated as an array
       if (item.type) {
         const typeArray = Array.isArray(item.type) ? item.type : [item.type];
         typeArray.forEach(type => {
@@ -90,11 +87,18 @@ const MaterialPage = () => {
         });
       }
 
-      // Ensure tags is an array before calling forEach
       if (Array.isArray(item.tags)) {
         item.tags.forEach(tag => {
           tags[tag] = (tags[tag] || 0) + 1;
         });
+      }
+
+      if (item.publication_date) {
+        publicationDates[item.publication_date] = (publicationDates[item.publication_date] || 0) + 1;
+      }
+
+      if (item.submit_date) {
+        submitDates[item.submit_date] = (submitDates[item.submit_date] || 0) + 1;
       }
     });
 
@@ -103,6 +107,8 @@ const MaterialPage = () => {
       licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
       types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
       tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
+      publication_dates: Object.keys(publicationDates).map(key => ({ key, doc_count: publicationDates[key] })),
+      submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
     });
   };
 
@@ -126,26 +132,19 @@ const MaterialPage = () => {
   });
 
   const highlightFields = Object.values(selectedFilters).flat();
-
-  // Pagination logic
   const indexOfLastMaterial = currentPage * itemsPerPage;
   const indexOfFirstMaterial = indexOfLastMaterial - itemsPerPage;
   const currentMaterials = filteredMaterials.slice(indexOfFirstMaterial, indexOfLastMaterial);
-
   const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
   const handleItemsPerPageChange = (numItems) => {
     setItemsPerPage(numItems);
-    setCurrentPage(1); // Reset to the first page when the number of items per page changes
+    setCurrentPage(1);
   };
 
   return (
     <div>
-      {/* Header with background image */}
       <div className="container-fluid py-5 mb-5 searchbar-header" style={{ position: 'relative', backgroundImage: `url(${bgSearchbar})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.1)' }}></div>
         <div className="container py-5" style={{ position: 'relative', zIndex: 1 }}>
@@ -157,10 +156,8 @@ const MaterialPage = () => {
         </div>
       </div>
 
-      {/* Main content area */}
       <div className="container my-5">
         <div className="row">
-          {/* Filter Sidebar */}
           <div className="col-md-3">
             <h3>Filter by</h3>
             {Object.keys(facets).length > 0 ? (
@@ -169,21 +166,23 @@ const MaterialPage = () => {
                 <FilterCard title="Authors" items={facets.authors || []} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 <FilterCard title="Types" items={facets.types || []} field="type" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 <FilterCard title="Tags" items={facets.tags || []} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                
+                {facets.publication_dates && (
+                  <FilterCard title="Publication Date" items={facets.publication_dates} field="publication_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                )}
+                {facets.submit_dates && (
+                  <FilterCard title="Submit Date" items={facets.submit_dates} field="submit_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                )}
               </>
             ) : (
               <p>No filters available.</p>
             )}
           </div>
 
-          {/* Material List */}
           <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <p>Showing {indexOfFirstMaterial + 1} to {indexOfLastMaterial > filteredMaterials.length ? filteredMaterials.length : indexOfLastMaterial} of {filteredMaterials.length} materials</p>
-              {/* Items Per Page Dropdown */}
-              <PagesSelection
-                itemsPerPage={itemsPerPage}
-                onItemsPerPageChange={handleItemsPerPageChange}
-              />
+              <PagesSelection itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} />
             </div>
 
             {hasLoaded ? (
@@ -210,13 +209,7 @@ const MaterialPage = () => {
                       <p>No materials found with the current filters.</p>
                     )}
                   </div>
-
-                  {/* Pagination Controls */}
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
+                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
                 </>
               )
             ) : (
