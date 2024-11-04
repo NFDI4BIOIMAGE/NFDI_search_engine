@@ -94,7 +94,8 @@ const MaterialPage = () => {
       }
 
       if (item.publication_date) {
-        publicationDates[item.publication_date] = (publicationDates[item.publication_date] || 0) + 1;
+        const publicationDate = formatPublicationDate(item.publication_date);
+        publicationDates[publicationDate] = (publicationDates[publicationDate] || 0) + 1;
       }
 
       if (item.submit_date) {
@@ -112,6 +113,15 @@ const MaterialPage = () => {
     });
   };
 
+  const formatPublicationDate = (date) => {
+    if (typeof date === 'string') {
+      return date.split('-')[0];
+    } else if (typeof date === 'number') {
+      return date.toString();
+    }
+    return date;
+  };
+
   const handleFilter = (field, value) => {
     const updatedFilters = { ...selectedFilters };
     if (updatedFilters[field]?.includes(value)) {
@@ -125,6 +135,10 @@ const MaterialPage = () => {
 
   const filteredMaterials = materials.filter(material => {
     return Object.keys(selectedFilters).every(field => {
+      if (field === "publication_date") {
+        const publicationDate = formatPublicationDate(material.publication_date);
+        return selectedFilters[field]?.includes(publicationDate);
+      }
       return selectedFilters[field]?.length === 0 || selectedFilters[field]?.some(filterValue => {
         return Array.isArray(material[field]) ? material[field].includes(filterValue) : material[field] === filterValue;
       });
@@ -166,7 +180,6 @@ const MaterialPage = () => {
                 <FilterCard title="Authors" items={facets.authors || []} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 <FilterCard title="Types" items={facets.types || []} field="type" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 <FilterCard title="Tags" items={facets.tags || []} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                
                 {facets.publication_dates && (
                   <FilterCard title="Publication Date" items={facets.publication_dates} field="publication_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 )}

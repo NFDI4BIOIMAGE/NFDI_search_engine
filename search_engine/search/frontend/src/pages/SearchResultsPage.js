@@ -67,7 +67,8 @@ const SearchResultsPage = () => {
             }
 
             if (item._source.publication_date) {
-              publicationDates[item._source.publication_date] = (publicationDates[item._source.publication_date] || 0) + 1;
+              const publicationDate = formatPublicationDate(item._source.publication_date);
+              publicationDates[publicationDate] = (publicationDates[publicationDate] || 0) + 1;
             }
 
             if (item._source.submit_date) {
@@ -89,6 +90,15 @@ const SearchResultsPage = () => {
         });
     }
   }, [query, exactMatch, backendUrl]);
+
+  const formatPublicationDate = (date) => {
+    if (typeof date === 'string') {
+      return date.split('-')[0];
+    } else if (typeof date === 'number') {
+      return date.toString();
+    }
+    return date;
+  };
 
   const handleFilter = (field, key) => {
     setSelectedFilters(prevFilters => {
@@ -121,6 +131,11 @@ const SearchResultsPage = () => {
 
   const filteredResults = results.filter(result => {
     return Object.keys(selectedFilters).every(field => {
+      if (field === "publication_date") {
+        const publicationDate = formatPublicationDate(result._source.publication_date);
+        return selectedFilters[field]?.includes(publicationDate);
+      }
+
       if (!selectedFilters[field].length) return true;
 
       const actualField = correctFieldName(field);
