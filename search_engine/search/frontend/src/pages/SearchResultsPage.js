@@ -21,7 +21,7 @@ const SearchResultsPage = () => {
   const [selectedFilters, setSelectedFilters] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [facets, setFacets] = useState({ authors: [], types: [], tags: [], licenses: [] });
+  const [facets, setFacets] = useState({ authors: [], types: [], tags: [], licenses: [], publication_dates: [], submit_dates: [] });
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
@@ -67,11 +67,13 @@ const SearchResultsPage = () => {
             }
 
             if (item._source.publication_date) {
-              publicationDates[item._source.publication_date] = (publicationDates[item._source.publication_date] || 0) + 1;
+              const year = item._source.publication_date.toString().split('-')[0];
+              publicationDates[year] = (publicationDates[year] || 0) + 1;
             }
 
             if (item._source.submit_date) {
-              submitDates[item._source.submit_date] = (submitDates[item._source.submit_date] || 0) + 1;
+              const submitYear = item._source.submit_date.split('-')[0];
+              submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
             }
           });
 
@@ -127,6 +129,11 @@ const SearchResultsPage = () => {
       const resultField = result._source?.[actualField] || result[actualField];
 
       if (!resultField) return false;
+
+      if (field === 'publication_date' && resultField) {
+        const publicationYear = resultField.toString().split('-')[0];
+        return selectedFilters[field].includes(publicationYear);
+      }
 
       if (Array.isArray(resultField)) {
         return selectedFilters[field].some(filter => resultField.includes(filter));
