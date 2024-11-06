@@ -94,11 +94,13 @@ const MaterialPage = () => {
       }
 
       if (item.publication_date) {
-        publicationDates[item.publication_date] = (publicationDates[item.publication_date] || 0) + 1;
+        const year = item.publication_date.toString().split('-')[0];
+        publicationDates[year] = (publicationDates[year] || 0) + 1;
       }
 
       if (item.submit_date) {
-        submitDates[item.submit_date] = (submitDates[item.submit_date] || 0) + 1;
+        const submitYear = item.submit_date.split('-')[0];
+        submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
       }
     });
 
@@ -126,6 +128,10 @@ const MaterialPage = () => {
   const filteredMaterials = materials.filter(material => {
     return Object.keys(selectedFilters).every(field => {
       return selectedFilters[field]?.length === 0 || selectedFilters[field]?.some(filterValue => {
+        if (field === 'publication_date' && material.publication_date) {
+          const publicationYear = material.publication_date.toString().split('-')[0];
+          return publicationYear === filterValue;
+        }
         return Array.isArray(material[field]) ? material[field].includes(filterValue) : material[field] === filterValue;
       });
     });
