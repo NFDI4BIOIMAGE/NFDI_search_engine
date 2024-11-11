@@ -16,6 +16,7 @@ const MaterialPage = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [dateRange, setDateRange] = useState({ min: 2000, max: 2024 }); 
 
   useEffect(() => {
     const savedFilters = JSON.parse(localStorage.getItem('selectedFilters'));
@@ -65,45 +66,54 @@ const MaterialPage = () => {
     const tags = {};
     const publicationDates = {};
     const submitDates = {};
-
+    let minYear = new Date().getFullYear();
+    let maxYear = 2000;
+  
     data.forEach((item) => {
       if (Array.isArray(item.authors)) {
         item.authors.forEach(author => {
           authors[author] = (authors[author] || 0) + 1;
         });
       }
-
+  
       if (item.license) {
         const licenseArray = Array.isArray(item.license) ? item.license : [item.license];
         licenseArray.forEach(license => {
           licenses[license] = (licenses[license] || 0) + 1;
         });
       }
-
+  
       if (item.type) {
         const typeArray = Array.isArray(item.type) ? item.type : [item.type];
         typeArray.forEach(type => {
           types[type] = (types[type] || 0) + 1;
         });
       }
-
+  
       if (Array.isArray(item.tags)) {
         item.tags.forEach(tag => {
           tags[tag] = (tags[tag] || 0) + 1;
         });
       }
-
+  
       if (item.publication_date) {
-        const year = item.publication_date.toString().split('-')[0];
+        // Check if publication_date is a string and can be split, or if it's a Date object
+        const year = typeof item.publication_date === 'string' 
+          ? parseInt(item.publication_date.split('-')[0], 10)
+          : new Date(item.publication_date).getFullYear();
+  
         publicationDates[year] = (publicationDates[year] || 0) + 1;
+        minYear = Math.min(minYear, year);
+        maxYear = Math.max(maxYear, year);
       }
-
+  
       if (item.submit_date) {
         const submitYear = item.submit_date.split('-')[0];
         submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
       }
     });
-
+  
+    setDateRange({ min: minYear, max: maxYear });
     setFacets({
       authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
       licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
@@ -113,6 +123,7 @@ const MaterialPage = () => {
       submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
     });
   };
+  
 
   const handleFilter = (field, value) => {
     const updatedFilters = { ...selectedFilters };
@@ -125,19 +136,42 @@ const MaterialPage = () => {
     localStorage.setItem('selectedFilters', JSON.stringify(updatedFilters));
   };
 
+  const handleDateRangeChange = (field, range) => {
+    setSelectedFilters(prevFilters => ({
+      ...prevFilters,
+      [field]: range,
+    }));
+  };
+
   const filteredMaterials = materials.filter(material => {
     return Object.keys(selectedFilters).every(field => {
+      if (field === 'publication_date' && material.publication_date) {
+        // Check if publication_date is a string and can be split
+        const publicationYear = typeof material.publication_date === 'string' 
+          ? parseInt(material.publication_date.split('-')[0], 10)
+          : new Date(material.publication_date).getFullYear();
+  
+        return (
+          publicationYear >= selectedFilters[field][0] &&
+          publicationYear <= selectedFilters[field][1]
+        );
+      }
+  
       return selectedFilters[field]?.length === 0 || selectedFilters[field]?.some(filterValue => {
-        if (field === 'publication_date' && material.publication_date) {
-          const publicationYear = material.publication_date.toString().split('-')[0];
-          return publicationYear === filterValue;
-        }
-        return Array.isArray(material[field]) ? material[field].includes(filterValue) : material[field] === filterValue;
+        return Array.isArray(material[field]) 
+          ? material[field].includes(filterValue) 
+          : material[field] === filterValue;
       });
     });
   });
+  
 
-  const highlightFields = Object.values(selectedFilters).flat();
+  // const highlightFields = Object.values(selectedFilters).flat();
+  const highlightFields = Object.keys(selectedFilters)
+  .filter(field => field !== 'publication_date') // Exclude publication_date from highlights
+  .map(field => selectedFilters[field])
+  .flat();
+
   const indexOfLastMaterial = currentPage * itemsPerPage;
   const indexOfFirstMaterial = indexOfLastMaterial - itemsPerPage;
   const currentMaterials = filteredMaterials.slice(indexOfFirstMaterial, indexOfLastMaterial);
@@ -174,7 +208,15 @@ const MaterialPage = () => {
                 <FilterCard title="Tags" items={facets.tags || []} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 
                 {facets.publication_dates && (
-                  <FilterCard title="Publication Date" items={facets.publication_dates} field="publication_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                  <FilterCard
+                    title="Publication Date"
+                    items={facets.publication_dates}
+                    field="publication_date"
+                    selectedFilters={selectedFilters}
+                    handleFilter={handleFilter}
+                    dateRange={dateRange}
+                    onDateRangeChange={handleDateRangeChange}
+                  />
                 )}
                 {facets.submit_dates && (
                   <FilterCard title="Submit Date" items={facets.submit_dates} field="submit_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
