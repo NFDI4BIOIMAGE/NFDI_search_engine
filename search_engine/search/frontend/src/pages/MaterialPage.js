@@ -16,7 +16,7 @@ const MaterialPage = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [dateRange, setDateRange] = useState({ min: null, max: null }); // No default values here
+  const [dateRange, setDateRange] = useState({ min: null, max: null });
 
   useEffect(() => {
     const savedFilters = JSON.parse(localStorage.getItem('selectedFilters'));
