@@ -3,10 +3,10 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 const PublicationDateSlider = ({ minYear, maxYear, onDateRangeChange, selectedRange }) => {
-  const [range, setRange] = useState(selectedRange || [minYear, maxYear]);
+  const [range, setRange] = useState(selectedRange || [minYear || 2005, maxYear || new Date().getFullYear()]);
 
   useEffect(() => {
-    setRange(selectedRange || [minYear, maxYear]);
+    setRange(selectedRange || [minYear || 2005, maxYear || new Date().getFullYear()]);
   }, [minYear, maxYear, selectedRange]);
 
   const handleRangeChange = (value) => {
@@ -19,8 +19,8 @@ const PublicationDateSlider = ({ minYear, maxYear, onDateRangeChange, selectedRa
       <h5>Publication Date Range</h5>
       <Slider
         range
-        min={minYear}
-        max={maxYear}
+        min={minYear || 2005}
+        max={maxYear || new Date().getFullYear()}
         value={range}
         onChange={handleRangeChange}
         allowCross={false}

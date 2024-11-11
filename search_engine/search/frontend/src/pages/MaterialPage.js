@@ -16,7 +16,7 @@ const MaterialPage = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [dateRange, setDateRange] = useState({ min: 2000, max: 2024 }); 
+  const [dateRange, setDateRange] = useState({ min: null, max: null }); // No default values here
 
   useEffect(() => {
     const savedFilters = JSON.parse(localStorage.getItem('selectedFilters'));
@@ -69,7 +69,9 @@ const MaterialPage = () => {
     let minYear = new Date().getFullYear();
     let maxYear = 2000;
   
-    data.forEach((item) => {
+    data.forEach((item, index) => {
+      console.log(`Processing publication_date for item ${index}:`, item.publication_date);
+  
       if (Array.isArray(item.authors)) {
         item.authors.forEach(author => {
           authors[author] = (authors[author] || 0) + 1;
@@ -97,14 +99,25 @@ const MaterialPage = () => {
       }
   
       if (item.publication_date) {
-        // Check if publication_date is a string and can be split, or if it's a Date object
-        const year = typeof item.publication_date === 'string' 
-          ? parseInt(item.publication_date.split('-')[0], 10)
-          : new Date(item.publication_date).getFullYear();
+        let year;
   
-        publicationDates[year] = (publicationDates[year] || 0) + 1;
-        minYear = Math.min(minYear, year);
-        maxYear = Math.max(maxYear, year);
+        // Check if the date is in 'YYYY-MM-DD' format or 'YYYY' format and parse correctly
+        if (/^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
+          year = parseInt(item.publication_date.split('-')[0], 10);
+        } else if (/^\d{4}$/.test(item.publication_date)) {
+          year = parseInt(item.publication_date, 10);
+        } else {
+          console.warn(`Invalid publication_date format for item ${index}:`, item.publication_date);
+          year = null;  // Set to null if the format is invalid
+        }
+  
+        if (year && year >= 1900 && year <= new Date().getFullYear()) { // Add a reasonable year range
+          publicationDates[year] = (publicationDates[year] || 0) + 1;
+          minYear = Math.min(minYear, year);
+          maxYear = Math.max(maxYear, year);
+        } else {
+          console.warn(`Parsed year out of range or invalid for item ${index}:`, year);
+        }
       }
   
       if (item.submit_date) {
@@ -113,7 +126,11 @@ const MaterialPage = () => {
       }
     });
   
-    setDateRange({ min: minYear, max: maxYear });
+    setDateRange({
+      min: Object.keys(publicationDates).length > 0 ? minYear : dateRange.min,
+      max: Object.keys(publicationDates).length > 0 ? maxYear : dateRange.max,
+    });
+  
     setFacets({
       authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
       licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
@@ -143,34 +160,37 @@ const MaterialPage = () => {
     }));
   };
 
-  const filteredMaterials = materials.filter(material => {
-    return Object.keys(selectedFilters).every(field => {
-      if (field === 'publication_date' && material.publication_date) {
-        // Check if publication_date is a string and can be split
-        const publicationYear = typeof material.publication_date === 'string' 
-          ? parseInt(material.publication_date.split('-')[0], 10)
-          : new Date(material.publication_date).getFullYear();
-  
-        return (
-          publicationYear >= selectedFilters[field][0] &&
-          publicationYear <= selectedFilters[field][1]
-        );
+  const filteredMaterials = materials.filter((material) => {
+    return Object.keys(selectedFilters).every((field) => {
+      if (field === "publication_date" && material.publication_date) {
+        const selectedRange = selectedFilters[field];
+        if (!selectedRange || (selectedRange[0] === dateRange.min && selectedRange[1] === dateRange.max)) {
+          return true;
+        }
+
+        const publicationYear =
+          typeof material.publication_date === "string"
+            ? parseInt(material.publication_date.split("-")[0], 10)
+            : new Date(material.publication_date).getFullYear();
+
+        return publicationYear >= selectedRange[0] && publicationYear <= selectedRange[1];
       }
-  
-      return selectedFilters[field]?.length === 0 || selectedFilters[field]?.some(filterValue => {
-        return Array.isArray(material[field]) 
-          ? material[field].includes(filterValue) 
-          : material[field] === filterValue;
-      });
+
+      return (
+        selectedFilters[field]?.length === 0 ||
+        selectedFilters[field]?.some((filterValue) => {
+          return Array.isArray(material[field])
+            ? material[field].includes(filterValue)
+            : material[field] === filterValue;
+        })
+      );
     });
   });
-  
 
-  // const highlightFields = Object.values(selectedFilters).flat();
   const highlightFields = Object.keys(selectedFilters)
-  .filter(field => field !== 'publication_date') // Exclude publication_date from highlights
-  .map(field => selectedFilters[field])
-  .flat();
+    .filter(field => field !== 'publication_date')
+    .map(field => selectedFilters[field])
+    .flat();
 
   const indexOfLastMaterial = currentPage * itemsPerPage;
   const indexOfFirstMaterial = indexOfLastMaterial - itemsPerPage;
