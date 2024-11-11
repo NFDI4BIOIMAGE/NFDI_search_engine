@@ -37,6 +37,7 @@
 │   │       │   │   ├── PagesSelection.js
 │   │       │   │   ├── Pagination.js
 │   │       │   │   ├── Papers.js
+│   │       │   │   ├── PublicationDateSlider
 │   │       │   │   ├── ResultsBox.js
 │   │       │   │   ├── SearchBar.js
 │   │       │   │   ├── SearchResults.js
