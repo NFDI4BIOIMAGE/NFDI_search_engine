@@ -34,6 +34,7 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
       </div>
       <div ref={containerRef} className={`faceted-search-body ${collapsed ? '' : 'show'}`}>
         {field === 'publication_date' ? (
+          // Render the PublicationDateSlider without the "Show More" option for now
           <PublicationDateSlider
             minYear={dateRange.min}
             maxYear={dateRange.max}
@@ -41,27 +42,31 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
             selectedRange={selectedFilters[field]}
           />
         ) : (
-          <ul>
-            {displayedItems.map(item => (
-              <li key={item.key}>
-                <input
-                  type="checkbox"
-                  checked={selectedFilters[field]?.includes(item.key) || false}
-                  onChange={() => handleFilter(field, item.key)}
-                />
-                <label
-                  className={selectedFilters[field]?.includes(item.key) ? 'highlighted' : ''}
-                >
-                  {item.key} ({item.doc_count})
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-        {items.length > 5 && (
-          <div className="show-more" onClick={() => setShowAll(!showAll)}>
-            {showAll ? 'Show Less' : `Show More (${items.length - 5})`}
-          </div>
+          // Render other fields as a list with "Show More" functionality
+          <>
+            <ul>
+              {displayedItems.map(item => (
+                <li key={item.key}>
+                  <input
+                    type="checkbox"
+                    checked={selectedFilters[field]?.includes(item.key) || false}
+                    onChange={() => handleFilter(field, item.key)}
+                  />
+                  <label
+                    className={selectedFilters[field]?.includes(item.key) ? 'highlighted' : ''}
+                  >
+                    {item.key} ({item.doc_count})
+                  </label>
+                </li>
+              ))}
+            </ul>
+            {/* Only show "Show More" if there are hidden items and field is not publication_date */}
+            {items.length > 5 && field !== 'publication_date' && (
+              <div className="show-more" onClick={() => setShowAll(!showAll)}>
+                {showAll ? 'Show Less' : `Show More (${items.length - 5})`}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
