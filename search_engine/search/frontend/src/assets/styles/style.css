@@ -533,15 +533,15 @@ mark {
     padding: 10px;
     border-bottom: 1px solid #ccc;  /* Adds a separator between suggestions */
     cursor: pointer;
-    text-align: left;  /* Ensures the text is left-aligned */
+    text-align: left; 
   }
   
   .suggestion-list li:hover {
-    background-color: #f0f0f0;  /* Add a hover effect for better UX */
+    background-color: #f0f0f0;
   }
   
   .suggestion-list li:last-child {
-    border-bottom: none;  /* Remove the border for the last suggestion */
+    border-bottom: none;
   }
   
   .suggestion-list li span {
@@ -549,10 +549,40 @@ mark {
   }
 
   .suggestion_list_mark {
-    background-color: yellow;  /* Customize the highlight color */
-    font-weight: bold;         /* Optionally make the text bold */
-    color: black;              /* Ensure good contrast */
+    background-color: yellow;
+    font-weight: bold;  
+    color: black;
     padding: 0;
   }
-  
+
+/* Date Range Filter Past Years Button */
+.preset-filters {
+    display: flex;
+    flex-direction: column; 
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.preset-filters .toggle-button {
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.preset-filters .toggle-button.selected {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #0056b3;
+}
+
+.preset-filters .toggle-button:hover {
+    background-color: #e0e0e0;
+}
+
+ 
   
