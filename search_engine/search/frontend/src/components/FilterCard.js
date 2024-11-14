@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PublicationDateSlider from './PublicationDateSlider';
 
-const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilter, dateRange, onDateRangeChange }) => {
+const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilter, dateRange, onDateRangeChange, publicationData }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const containerRef = useRef(null);
 
-  // Sort items alphabetically by their key before displaying
-  const sortedItems = items.sort((a, b) => a.key.localeCompare(b.key));
+  // Sort items alphabetically by their key, only if the key exists
+  const sortedItems = items
+    .filter(item => item.key !== undefined) // Ensure the key is defined
+    .sort((a, b) => a.key.localeCompare(b.key));
+
   const displayedItems = showAll ? sortedItems : sortedItems.slice(0, 5);
 
   useEffect(() => {
@@ -40,6 +43,7 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
             maxYear={dateRange.max}
             onDateRangeChange={(range) => onDateRangeChange(field, range)}
             selectedRange={selectedFilters[field]}
+            publicationData={publicationData}
           />
         ) : (
           // Render other fields as a list with "Show More" functionality

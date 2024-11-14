@@ -68,79 +68,72 @@ const MaterialPage = () => {
     const submitDates = {};
     let minYear = new Date().getFullYear();
     let maxYear = 2000;
-  
-    data.forEach((item, index) => {
-      console.log(`Processing publication_date for item ${index}:`, item.publication_date);
-  
+
+    data.forEach((item) => {
       if (Array.isArray(item.authors)) {
         item.authors.forEach(author => {
           authors[author] = (authors[author] || 0) + 1;
         });
       }
-  
+
       if (item.license) {
         const licenseArray = Array.isArray(item.license) ? item.license : [item.license];
         licenseArray.forEach(license => {
           licenses[license] = (licenses[license] || 0) + 1;
         });
       }
-  
+
       if (item.type) {
         const typeArray = Array.isArray(item.type) ? item.type : [item.type];
         typeArray.forEach(type => {
           types[type] = (types[type] || 0) + 1;
         });
       }
-  
+
       if (Array.isArray(item.tags)) {
         item.tags.forEach(tag => {
           tags[tag] = (tags[tag] || 0) + 1;
         });
       }
-  
+
       if (item.publication_date) {
         let year;
-  
-        // Check if the date is in 'YYYY-MM-DD' format or 'YYYY' format and parse correctly
         if (/^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
           year = parseInt(item.publication_date.split('-')[0], 10);
         } else if (/^\d{4}$/.test(item.publication_date)) {
           year = parseInt(item.publication_date, 10);
-        } else {
-          console.warn(`Invalid publication_date format for item ${index}:`, item.publication_date);
-          year = null;  // Set to null if the format is invalid
         }
-  
-        if (year && year >= 1900 && year <= new Date().getFullYear()) { // Add a reasonable year range
+
+        if (year && year >= 1900 && year <= new Date().getFullYear()) {
           publicationDates[year] = (publicationDates[year] || 0) + 1;
           minYear = Math.min(minYear, year);
           maxYear = Math.max(maxYear, year);
-        } else {
-          console.warn(`Parsed year out of range or invalid for item ${index}:`, year);
         }
       }
-  
+
       if (item.submit_date) {
         const submitYear = item.submit_date.split('-')[0];
         submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
       }
     });
-  
+
     setDateRange({
       min: Object.keys(publicationDates).length > 0 ? minYear : dateRange.min,
       max: Object.keys(publicationDates).length > 0 ? maxYear : dateRange.max,
     });
-  
+
     setFacets({
       authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
       licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
       types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
       tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
-      publication_dates: Object.keys(publicationDates).map(key => ({ key, doc_count: publicationDates[key] })),
+      publication_dates: Object.keys(publicationDates).map(key => ({
+        year: parseInt(key, 10),
+        count: publicationDates[key]
+      })),
       submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
     });
   };
-  
 
   const handleFilter = (field, value) => {
     const updatedFilters = { ...selectedFilters };
@@ -236,6 +229,7 @@ const MaterialPage = () => {
                     handleFilter={handleFilter}
                     dateRange={dateRange}
                     onDateRangeChange={handleDateRangeChange}
+                    publicationData={facets.publication_dates}
                   />
                 )}
                 {facets.submit_dates && (
