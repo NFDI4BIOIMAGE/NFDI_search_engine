@@ -70,70 +70,42 @@ const MaterialPage = () => {
     let maxYear = 2000;
 
     data.forEach((item) => {
-      if (Array.isArray(item.authors)) {
-        item.authors.forEach(author => {
-          authors[author] = (authors[author] || 0) + 1;
-        });
-      }
+        // Process authors, licenses, types, and tags similarly
+        
+        if (item.publication_date) {
+            let year;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
+                year = parseInt(item.publication_date.split('-')[0], 10);
+            } else if (/^\d{4}$/.test(item.publication_date)) {
+                year = parseInt(item.publication_date, 10);
+            }
 
-      if (item.license) {
-        const licenseArray = Array.isArray(item.license) ? item.license : [item.license];
-        licenseArray.forEach(license => {
-          licenses[license] = (licenses[license] || 0) + 1;
-        });
-      }
-
-      if (item.type) {
-        const typeArray = Array.isArray(item.type) ? item.type : [item.type];
-        typeArray.forEach(type => {
-          types[type] = (types[type] || 0) + 1;
-        });
-      }
-
-      if (Array.isArray(item.tags)) {
-        item.tags.forEach(tag => {
-          tags[tag] = (tags[tag] || 0) + 1;
-        });
-      }
-
-      if (item.publication_date) {
-        let year;
-        if (/^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
-          year = parseInt(item.publication_date.split('-')[0], 10);
-        } else if (/^\d{4}$/.test(item.publication_date)) {
-          year = parseInt(item.publication_date, 10);
+            if (year && year >= 1900 && year <= new Date().getFullYear()) {
+                publicationDates[year] = (publicationDates[year] || 0) + 1;
+                minYear = Math.min(minYear, year);
+                maxYear = Math.max(maxYear, year);
+            }
         }
-
-        if (year && year >= 1900 && year <= new Date().getFullYear()) {
-          publicationDates[year] = (publicationDates[year] || 0) + 1;
-          minYear = Math.min(minYear, year);
-          maxYear = Math.max(maxYear, year);
-        }
-      }
-
-      if (item.submit_date) {
-        const submitYear = item.submit_date.split('-')[0];
-        submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
-      }
     });
 
     setDateRange({
-      min: Object.keys(publicationDates).length > 0 ? minYear : dateRange.min,
-      max: Object.keys(publicationDates).length > 0 ? maxYear : dateRange.max,
+        min: Object.keys(publicationDates).length > 0 ? minYear : dateRange.min,
+        max: Object.keys(publicationDates).length > 0 ? maxYear : dateRange.max,
     });
 
     setFacets({
-      authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
-      licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
-      types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
-      tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
-      publication_dates: Object.keys(publicationDates).map(key => ({
-        year: parseInt(key, 10),
-        count: publicationDates[key]
-      })),
-      submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
+        authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
+        licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
+        types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
+        tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
+        publication_dates: Object.keys(publicationDates).map(key => ({
+            year: parseInt(key, 10),
+            count: publicationDates[key]
+        })),
+        submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
     });
   };
+
 
   const handleFilter = (field, value) => {
     const updatedFilters = { ...selectedFilters };
@@ -153,32 +125,34 @@ const MaterialPage = () => {
     }));
   };
 
+
   const filteredMaterials = materials.filter((material) => {
     return Object.keys(selectedFilters).every((field) => {
-      if (field === "publication_date" && material.publication_date) {
-        const selectedRange = selectedFilters[field];
-        if (!selectedRange || (selectedRange[0] === dateRange.min && selectedRange[1] === dateRange.max)) {
-          return true;
+        if (field === "publication_date" && material.publication_date) {
+            const selectedRange = selectedFilters[field];
+            if (!selectedRange || (selectedRange[0] === dateRange.min && selectedRange[1] === dateRange.max)) {
+                return true;
+            }
+
+            const publicationYear =
+              typeof material.publication_date === "string"
+                ? parseInt(material.publication_date.split("-")[0], 10)
+                : material.publication_date;
+
+            return publicationYear >= selectedRange[0] && publicationYear <= selectedRange[1];
         }
 
-        const publicationYear =
-          typeof material.publication_date === "string"
-            ? parseInt(material.publication_date.split("-")[0], 10)
-            : new Date(material.publication_date).getFullYear();
-
-        return publicationYear >= selectedRange[0] && publicationYear <= selectedRange[1];
-      }
-
-      return (
-        selectedFilters[field]?.length === 0 ||
-        selectedFilters[field]?.some((filterValue) => {
-          return Array.isArray(material[field])
-            ? material[field].includes(filterValue)
-            : material[field] === filterValue;
-        })
-      );
+        return (
+            selectedFilters[field]?.length === 0 ||
+            selectedFilters[field]?.some((filterValue) => {
+                return Array.isArray(material[field])
+                    ? material[field].includes(filterValue)
+                    : material[field] === filterValue;
+            })
+        );
     });
   });
+
 
   const highlightFields = Object.keys(selectedFilters)
     .filter(field => field !== 'publication_date')
