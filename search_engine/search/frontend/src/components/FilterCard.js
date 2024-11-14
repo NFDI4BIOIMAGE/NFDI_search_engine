@@ -36,8 +36,8 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
         <span className="filter-arrow">▶</span>
       </div>
       <div ref={containerRef} className={`faceted-search-body ${collapsed ? '' : 'show'}`}>
-        {field === 'publication_date' ? (
-          // Render the PublicationDateSlider without the "Show More" option for now
+        {field === 'publication_date' && dateRange ? (
+          // Only render the PublicationDateSlider if dateRange is provided
           <PublicationDateSlider
             minYear={dateRange.min}
             maxYear={dateRange.max}

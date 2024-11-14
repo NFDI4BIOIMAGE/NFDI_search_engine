@@ -44,35 +44,37 @@ const SearchResultsPage = () => {
           const submitDates = {};
 
           response.data.forEach((item) => {
-            if (Array.isArray(item._source.authors)) {
-              item._source.authors.forEach(author => {
+            const source = item._source;
+
+            if (Array.isArray(source.authors)) {
+              source.authors.forEach(author => {
                 authors[author] = (authors[author] || 0) + 1;
               });
             }
 
-            const licenseArray = Array.isArray(item._source.license) ? item._source.license : [item._source.license];
+            const licenseArray = Array.isArray(source.license) ? source.license : [source.license];
             licenseArray.forEach(license => {
               licenses[license] = (licenses[license] || 0) + 1;
             });
 
-            const typeArray = Array.isArray(item._source.type) ? item._source.type : [item._source.type];
+            const typeArray = Array.isArray(source.type) ? source.type : [source.type];
             typeArray.forEach(type => {
               types[type] = (types[type] || 0) + 1;
             });
 
-            if (Array.isArray(item._source.tags)) {
-              item._source.tags.forEach(tag => {
+            if (Array.isArray(source.tags)) {
+              source.tags.forEach(tag => {
                 tags[tag] = (tags[tag] || 0) + 1;
               });
             }
 
-            if (item._source.publication_date) {
-              const year = item._source.publication_date.toString().split('-')[0];
+            if (source.publication_date) {
+              const year = source.publication_date.toString().split('-')[0];
               publicationDates[year] = (publicationDates[year] || 0) + 1;
             }
 
-            if (item._source.submit_date) {
-              const submitYear = item._source.submit_date.split('-')[0];
+            if (source.submit_date) {
+              const submitYear = source.submit_date.split('-')[0];
               submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
             }
           });
