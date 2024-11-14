@@ -98,10 +98,14 @@ const MaterialPage = () => {
 
       if (item.publication_date) {
         let year;
-        if (/^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
+  
+        // Check if the date is in 'YYYY-MM-DD' format or 'YYYY' format and parse correctly
+        if (typeof item.publication_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
           year = parseInt(item.publication_date.split('-')[0], 10);
-        } else if (/^\d{4}$/.test(item.publication_date)) {
+        } else if (typeof item.publication_date === 'string' && /^\d{4}$/.test(item.publication_date)) {
           year = parseInt(item.publication_date, 10);
+        } else if (typeof item.publication_date === 'number') {
+          year = item.publication_date; // If the year is provided as a number
         }
 
         if (year && year >= 1900 && year <= new Date().getFullYear()) {
@@ -161,10 +165,12 @@ const MaterialPage = () => {
           return true;
         }
 
-        const publicationYear =
-          typeof material.publication_date === "string"
+        const publicationYear = 
+          typeof material.publication_date === 'string'
             ? parseInt(material.publication_date.split("-")[0], 10)
-            : new Date(material.publication_date).getFullYear();
+            : typeof material.publication_date === 'number'
+              ? material.publication_date
+              : null;
 
         return publicationYear >= selectedRange[0] && publicationYear <= selectedRange[1];
       }
