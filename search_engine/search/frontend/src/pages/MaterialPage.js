@@ -65,7 +65,7 @@ const MaterialPage = () => {
     const types = {};
     const tags = {};
     const publicationDates = {};
-    const submitDates = {};
+    const submissionDates = {};
     let minYear = new Date().getFullYear();
     let maxYear = 2000;
 
@@ -111,9 +111,10 @@ const MaterialPage = () => {
         }
       }
 
-      if (item.submit_date) {
-        const submitYear = item.submit_date.split('-')[0];
-        submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
+      if (item.submission_date) {
+        // Extract the full date in 'YYYY-MM-DD' format
+        const submissionDate = item.submission_date.split('T')[0];
+        submissionDates[submissionDate] = (submissionDates[submissionDate] || 0) + 1;
       }
     });
 
@@ -131,7 +132,7 @@ const MaterialPage = () => {
         year: parseInt(key, 10),
         count: publicationDates[key]
       })),
-      submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
+      submission_dates: Object.keys(submissionDates).map(key => ({ key, doc_count: submissionDates[key] })),
     });
   };
 
@@ -169,6 +170,14 @@ const MaterialPage = () => {
         return publicationYear >= selectedRange[0] && publicationYear <= selectedRange[1];
       }
 
+      if (field === 'submission_date' && material.submission_date) {
+        const materialSubmissionDate = material.submission_date.split('T')[0]; // Extract 'YYYY-MM-DD'
+        return (
+          selectedFilters[field]?.length === 0 ||
+          selectedFilters[field].includes(materialSubmissionDate)
+        );
+      }
+
       return (
         selectedFilters[field]?.length === 0 ||
         selectedFilters[field]?.some((filterValue) => {
@@ -181,7 +190,7 @@ const MaterialPage = () => {
   });
 
   const highlightFields = Object.keys(selectedFilters)
-    .filter(field => field !== 'publication_date')
+    .filter(field => field !== 'publication_date' && field !== 'submission_date')
     .map(field => selectedFilters[field])
     .flat();
 
@@ -232,8 +241,14 @@ const MaterialPage = () => {
                     publicationData={facets.publication_dates}
                   />
                 )}
-                {facets.submit_dates && (
-                  <FilterCard title="Submit Date" items={facets.submit_dates} field="submit_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                {facets.submission_dates && (
+                  <FilterCard
+                    title="Submission Date"
+                    items={facets.submission_dates}
+                    field="submission_date"
+                    selectedFilters={selectedFilters}
+                    handleFilter={handleFilter}
+                  />
                 )}
               </>
             ) : (

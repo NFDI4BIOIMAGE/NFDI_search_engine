@@ -1,15 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PublicationDateSlider from './PublicationDateSlider';
+import { format } from 'date-fns';
 
 const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilter, dateRange, onDateRangeChange, publicationData }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const containerRef = useRef(null);
 
-  // Sort items alphabetically by their key, only if the key exists
+  // Sort items
   const sortedItems = items
-    .filter(item => item.key !== undefined) // Ensure the key is defined
-    .sort((a, b) => a.key.localeCompare(b.key));
+    .filter(item => item.key !== undefined)
+    .sort((a, b) => {
+      if (field === 'submission_date') {
+        // Sort dates chronologically
+        return new Date(a.key) - new Date(b.key);
+      } else {
+        // Sort alphabetically or numerically based on the type of key
+        if (typeof a.key === 'string' && typeof b.key === 'string') {
+          return a.key.localeCompare(b.key);
+        } else {
+          return a.key - b.key;
+        }
+      }
+    });
 
   const displayedItems = showAll ? sortedItems : sortedItems.slice(0, 5);
 
@@ -59,7 +72,9 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
                   <label
                     className={selectedFilters[field]?.includes(item.key) ? 'highlighted' : ''}
                   >
-                    {item.key} ({item.doc_count})
+                    {field === 'submission_date'
+                      ? format(new Date(item.key), 'yyyy-MM-dd')
+                      : item.key} ({item.doc_count})
                   </label>
                 </li>
               ))}
