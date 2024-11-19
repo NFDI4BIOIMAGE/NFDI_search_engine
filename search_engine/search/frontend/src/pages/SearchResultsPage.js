@@ -21,7 +21,7 @@ const SearchResultsPage = () => {
   const [selectedFilters, setSelectedFilters] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [facets, setFacets] = useState({ authors: [], types: [], tags: [], licenses: [], publication_dates: [], submit_dates: [] });
+  const [facets, setFacets] = useState({ authors: [], types: [], tags: [], licenses: [], publication_dates: [], submission_dates: [] });
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
@@ -31,8 +31,9 @@ const SearchResultsPage = () => {
 
   useEffect(() => {
     if (query) {
-      axios.get(`${backendUrl}/api/search?q=${encodeURIComponent(query)}&exact_match=${exactMatch}`)
-        .then(response => {
+      axios
+        .get(`${backendUrl}/api/search?q=${encodeURIComponent(query)}&exact_match=${exactMatch}`)
+        .then((response) => {
           setResults(response.data);
           setHasSearched(true);
 
@@ -41,29 +42,29 @@ const SearchResultsPage = () => {
           const types = {};
           const tags = {};
           const publicationDates = {};
-          const submitDates = {};
+          const submissionDates = {};
 
           response.data.forEach((item) => {
             const source = item._source;
 
             if (Array.isArray(source.authors)) {
-              source.authors.forEach(author => {
+              source.authors.forEach((author) => {
                 authors[author] = (authors[author] || 0) + 1;
               });
             }
 
             const licenseArray = Array.isArray(source.license) ? source.license : [source.license];
-            licenseArray.forEach(license => {
+            licenseArray.forEach((license) => {
               licenses[license] = (licenses[license] || 0) + 1;
             });
 
             const typeArray = Array.isArray(source.type) ? source.type : [source.type];
-            typeArray.forEach(type => {
+            typeArray.forEach((type) => {
               types[type] = (types[type] || 0) + 1;
             });
 
             if (Array.isArray(source.tags)) {
-              source.tags.forEach(tag => {
+              source.tags.forEach((tag) => {
                 tags[tag] = (tags[tag] || 0) + 1;
               });
             }
@@ -73,35 +74,42 @@ const SearchResultsPage = () => {
               publicationDates[year] = (publicationDates[year] || 0) + 1;
             }
 
-            if (source.submit_date) {
-              const submitYear = source.submit_date.split('-')[0];
-              submitDates[submitYear] = (submitDates[submitYear] || 0) + 1;
+            if (source.submission_date) {
+              // Extract the full date in 'YYYY-MM-DD' format
+              const submissionDate = source.submission_date.split('T')[0];
+              submissionDates[submissionDate] = (submissionDates[submissionDate] || 0) + 1;
             }
           });
 
           setFacets({
-            authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
-            licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
-            types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
-            tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
-            publication_dates: Object.keys(publicationDates).map(key => ({ key, doc_count: publicationDates[key] })),
-            submit_dates: Object.keys(submitDates).map(key => ({ key, doc_count: submitDates[key] })),
+            authors: Object.keys(authors).map((key) => ({ key, doc_count: authors[key] })),
+            licenses: Object.keys(licenses).map((key) => ({ key, doc_count: licenses[key] })),
+            types: Object.keys(types).map((key) => ({ key, doc_count: types[key] })),
+            tags: Object.keys(tags).map((key) => ({ key, doc_count: tags[key] })),
+            publication_dates: Object.keys(publicationDates).map((key) => ({
+              key,
+              doc_count: publicationDates[key],
+            })),
+            submission_dates: Object.keys(submissionDates).map((key) => ({
+              key,
+              doc_count: submissionDates[key],
+            })),
           });
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error fetching search results:', error);
         });
     }
   }, [query, exactMatch, backendUrl]);
 
   const handleFilter = (field, key) => {
-    setSelectedFilters(prevFilters => {
+    setSelectedFilters((prevFilters) => {
       const currentSelections = prevFilters[field] || [];
 
       if (currentSelections.includes(key)) {
         return {
           ...prevFilters,
-          [field]: currentSelections.filter(item => item !== key),
+          [field]: currentSelections.filter((item) => item !== key),
         };
       } else {
         return {
@@ -118,13 +126,17 @@ const SearchResultsPage = () => {
         return 'type';
       case 'licenses':
         return 'license';
+      case 'publication_dates':
+        return 'publication_date';
+      case 'submission_dates':
+        return 'submission_date';
       default:
         return field;
     }
   };
 
-  const filteredResults = results.filter(result => {
-    return Object.keys(selectedFilters).every(field => {
+  const filteredResults = results.filter((result) => {
+    return Object.keys(selectedFilters).every((field) => {
       if (!selectedFilters[field].length) return true;
 
       const actualField = correctFieldName(field);
@@ -132,13 +144,18 @@ const SearchResultsPage = () => {
 
       if (!resultField) return false;
 
-      if (field === 'publication_date' && resultField) {
+      if (field === 'publication_dates' && resultField) {
         const publicationYear = resultField.toString().split('-')[0];
         return selectedFilters[field].includes(publicationYear);
       }
 
+      if (field === 'submission_dates' && resultField) {
+        const submissionDate = resultField.toString().split('T')[0]; // Extract 'YYYY-MM-DD'
+        return selectedFilters[field].includes(submissionDate);
+      }
+
       if (Array.isArray(resultField)) {
-        return selectedFilters[field].some(filter => resultField.includes(filter));
+        return selectedFilters[field].some((filter) => resultField.includes(filter));
       } else if (typeof resultField === 'string') {
         return selectedFilters[field].includes(resultField);
       } else {
@@ -191,8 +208,8 @@ const SearchResultsPage = () => {
                 {facets.publication_dates && (
                   <FilterCard title="Publication Date" items={facets.publication_dates} field="publication_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 )}
-                {facets.submit_dates && (
-                  <FilterCard title="Submit Date" items={facets.submit_dates} field="submit_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                {facets.submission_dates && (
+                  <FilterCard title="Submission Date" items={facets.submission_dates} field="submission_dates" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 )}
               </>
             ) : (
@@ -202,7 +219,11 @@ const SearchResultsPage = () => {
 
           <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <p>Showing {indexOfFirstResult + 1} to {indexOfLastResult > filteredResults.length ? filteredResults.length : indexOfLastResult} of {filteredResults.length} results</p>
+              <p>
+                Showing {indexOfFirstResult + 1} to{' '}
+                {indexOfLastResult > filteredResults.length ? filteredResults.length : indexOfLastResult} of{' '}
+                {filteredResults.length} results
+              </p>
               <PagesSelection itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} />
             </div>
 
