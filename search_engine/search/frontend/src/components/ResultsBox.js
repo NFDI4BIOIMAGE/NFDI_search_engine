@@ -24,7 +24,7 @@ const ResultsBox = ({ title, url, authors, description, license, type, tags, hig
   };
 
   // Safely format authors and tags
-  const formattedAuthors = Array.isArray(authors) ? authors.join(', ') : authors || 'N/A';
+  const formattedAuthors = Array.isArray(authors) ? authors.join('; ') : authors || 'N/A';
   const formattedTags = tags ? tags.join(', ') : 'N/A';
 
   // Determine if URL is a single link or a list of links
