@@ -2,9 +2,9 @@ import React from 'react';
 import { Card } from 'react-bootstrap';
 
 const ResultsBox = ({ title, url, authors, description, license, type, tags, highlights }) => {
-  // Filter highlights to exclude publication date filters or other non-relevant highlights
+  // Filter highlights to exclude non-relevant fields
   const relevantHighlights = highlights.filter(
-    highlight => highlight !== 'publication_date' && typeof highlight === 'string' && highlight.trim().length > 0
+    highlight => typeof highlight === 'string' && highlight.trim().length > 0
   );
 
   // Function to highlight search terms or selected filters in the text
@@ -23,49 +23,60 @@ const ResultsBox = ({ title, url, authors, description, license, type, tags, hig
     );
   };
 
-  // Helper function to handle missing data
-  const displayField = (field, highlights) => {
-    return field ? highlightText(field, highlights) : 'N/A';
-  };
-
-  // Safely format authors as a comma-separated string or handle it if it's a string
-  const formattedAuthors = Array.isArray(authors)
-    ? authors.join(', ')
-    : typeof authors === 'string'
-    ? authors
-    : 'N/A';
-
-  // Formatting tags as a comma-separated string
+  // Safely format authors and tags
+  const formattedAuthors = Array.isArray(authors) ? authors.join(', ') : authors || 'N/A';
   const formattedTags = tags ? tags.join(', ') : 'N/A';
+
+  // Determine if URL is a single link or a list of links
+  const urls = Array.isArray(url) ? url : [url];
+  const mainUrl = urls[0];
+  const additionalUrls = urls.slice(1);
 
   return (
     <Card className="mb-3 shadow-lg" style={{ borderRadius: '8px', overflow: 'hidden', border: '0.3px solid #ddd' }}>
       <Card.Body>
-        {/* Clickable title integrated with the URL */}
+        {/* Clickable title integrated with the main URL */}
         <Card.Title>
-          <a href={url} target="_blank" rel="noopener noreferrer" className="text-decoration-none" style={{ color: '#1a0dab', fontSize: '1.25rem', fontWeight: 'bold' }}>
-            {highlightText(title, relevantHighlights)}
-          </a>
+          {mainUrl ? (
+            <a href={mainUrl} target="_blank" rel="noopener noreferrer" className="text-decoration-none" style={{ color: '#1a0dab', fontSize: '1.25rem', fontWeight: 'bold' }}>
+              {highlightText(title, relevantHighlights)}
+            </a>
+          ) : (
+            title
+          )}
         </Card.Title>
-        
+
+        {/* Additional links */}
+        {additionalUrls.length > 0 && (
+          <Card.Text style={{ fontSize: '0.9rem', marginBottom: '10px' }}>
+            <strong>Additional links:</strong>{' '}
+            {additionalUrls.map((link, index) => (
+              <span key={index}>
+                <a href={link} target="_blank" rel="noopener noreferrer" style={{ marginRight: '10px' }}>
+                  {link}
+                </a>
+              </span>
+            ))}
+          </Card.Text>
+        )}
+
+        {/* Authors */}
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
-          <strong>Authors:</strong> {displayField(formattedAuthors, relevantHighlights)}
+          <strong>Authors:</strong> {highlightText(formattedAuthors, relevantHighlights)}
         </Card.Text>
 
+        {/* Other fields */}
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
-          <strong>License:</strong> {displayField(Array.isArray(license) ? license.join(', ') : license, relevantHighlights)}
+          <strong>License:</strong> {license || 'N/A'}
         </Card.Text>
-
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
-          <strong>Type:</strong> {displayField(Array.isArray(type) ? type.join(', ') : type, relevantHighlights)}
+          <strong>Type:</strong> {type || 'N/A'}
         </Card.Text>
-
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
-          <strong>Tags:</strong> {displayField(formattedTags, relevantHighlights)}
+          <strong>Tags:</strong> {highlightText(formattedTags, relevantHighlights)}
         </Card.Text>
-
         <Card.Text style={{ color: '#333', fontSize: '0.9rem', marginBottom: '0' }}>
-          <strong>Abstract:</strong> {description ? (description.length > 200 ? `${description.substring(0, 200)}...` : description) : 'N/A'}
+          <strong>Abstract:</strong> {description || 'N/A'}
         </Card.Text>
       </Card.Body>
     </Card>
