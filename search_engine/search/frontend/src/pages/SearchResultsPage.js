@@ -206,7 +206,7 @@ const SearchResultsPage = () => {
                 <FilterCard title="Tags" items={facets.tags || []} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
 
                 {facets.publication_dates && (
-                  <FilterCard title="Publication Date" items={facets.publication_dates} field="publication_date" selectedFilters={selectedFilters} handleFilter={handleFilter} />
+                  <FilterCard title="Publication Date" items={facets.publication_dates} field="publication_dates" selectedFilters={selectedFilters} handleFilter={handleFilter} />
                 )}
                 {facets.submission_dates && (
                   <FilterCard title="Submission Date" items={facets.submission_dates} field="submission_dates" selectedFilters={selectedFilters} handleFilter={handleFilter} />
