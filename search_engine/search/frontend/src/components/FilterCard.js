@@ -2,18 +2,30 @@ import React, { useState, useRef, useEffect } from 'react';
 import PublicationDateSlider from './PublicationDateSlider';
 import { format } from 'date-fns';
 
-const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilter, dateRange, onDateRangeChange, publicationData }) => {
+const FilterCard = ({
+  title,
+  items = [],
+  field,
+  selectedFilters = {},
+  handleFilter,
+  dateRange,
+  onDateRangeChange,
+  publicationData,
+  minYear,
+}) => {
   const [collapsed, setCollapsed] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const containerRef = useRef(null);
 
   // Sort items
   const sortedItems = items
-    .filter(item => item.key !== undefined)
+    .filter((item) => item.key !== undefined)
     .sort((a, b) => {
       if (field === 'submission_date') {
         // Sort dates chronologically
         return new Date(a.key) - new Date(b.key);
+      } else if (field === 'publication_date') {
+        return a.year - b.year;
       } else {
         // Sort alphabetically or numerically based on the type of key
         if (typeof a.key === 'string' && typeof b.key === 'string') {
@@ -35,7 +47,8 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
     if (collapsed) {
       containerRef.current.style.maxHeight = '0';
     } else {
-      containerRef.current.style.maxHeight = containerRef.current.scrollHeight + 'px';
+      containerRef.current.style.maxHeight =
+        containerRef.current.scrollHeight + 'px';
     }
   }, [collapsed, showAll]);
 
@@ -48,12 +61,13 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
         {title}
         <span className="filter-arrow">▶</span>
       </div>
-      <div ref={containerRef} className={`faceted-search-body ${collapsed ? '' : 'show'}`}>
+      <div
+        ref={containerRef}
+        className={`faceted-search-body ${collapsed ? '' : 'show'}`}
+      >
         {field === 'publication_date' && dateRange ? (
-          // Only render the PublicationDateSlider if dateRange is provided
           <PublicationDateSlider
-            minYear={dateRange.min}
-            maxYear={dateRange.max}
+            minYear={minYear}
             onDateRangeChange={(range) => onDateRangeChange(field, range)}
             selectedRange={selectedFilters[field]}
             publicationData={publicationData}
@@ -62,19 +76,28 @@ const FilterCard = ({ title, items = [], field, selectedFilters = {}, handleFilt
           // Render other fields as a list with "Show More" functionality
           <>
             <ul>
-              {displayedItems.map(item => (
+              {displayedItems.map((item) => (
                 <li key={item.key}>
                   <input
                     type="checkbox"
-                    checked={selectedFilters[field]?.includes(item.key) || false}
+                    checked={
+                      selectedFilters[field]?.includes(item.key) || false
+                    }
                     onChange={() => handleFilter(field, item.key)}
                   />
                   <label
-                    className={selectedFilters[field]?.includes(item.key) ? 'highlighted' : ''}
+                    className={
+                      selectedFilters[field]?.includes(item.key)
+                        ? 'highlighted'
+                        : ''
+                    }
                   >
                     {field === 'submission_date'
                       ? format(new Date(item.key), 'yyyy-MM-dd')
-                      : item.key} ({item.doc_count})
+                      : field === 'publication_date'
+                      ? item.year
+                      : item.key}{' '}
+                    ({item.doc_count || item.count})
                   </label>
                 </li>
               ))}
