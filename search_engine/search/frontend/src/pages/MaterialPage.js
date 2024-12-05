@@ -38,7 +38,7 @@ const MaterialPage = () => {
         const data = await response.json();
 
         const uniqueMaterialsMap = new Map();
-        data.forEach(material => {
+        data.forEach((material) => {
           if (material.url && !uniqueMaterialsMap.has(material.url)) {
             uniqueMaterialsMap.set(material.url, material);
           }
@@ -50,8 +50,10 @@ const MaterialPage = () => {
         generateFacets(uniqueMaterials);
         setHasLoaded(true);
       } catch (error) {
-        console.error("Error fetching the materials data:", error);
-        setError("An error occurred while fetching materials. Please try again later.");
+        console.error('Error fetching the materials data:', error);
+        setError(
+          'An error occurred while fetching materials. Please try again later.'
+        );
         setHasLoaded(true);
       }
     };
@@ -66,84 +68,111 @@ const MaterialPage = () => {
     const tags = {};
     const publicationDates = {};
     const submissionDates = {};
-    let minYear = new Date().getFullYear();
-    let maxYear = 2000;
+
+    const currentYear = new Date().getFullYear();
+    let minYear = currentYear;
+    let maxYear = currentYear;
 
     data.forEach((item) => {
       if (Array.isArray(item.authors)) {
-        item.authors.forEach(author => {
+        item.authors.forEach((author) => {
           authors[author] = (authors[author] || 0) + 1;
         });
       }
 
       if (item.license) {
-        const licenseArray = Array.isArray(item.license) ? item.license : [item.license];
-        licenseArray.forEach(license => {
+        const licenseArray = Array.isArray(item.license)
+          ? item.license
+          : [item.license];
+        licenseArray.forEach((license) => {
           licenses[license] = (licenses[license] || 0) + 1;
         });
       }
 
       if (item.type) {
         const typeArray = Array.isArray(item.type) ? item.type : [item.type];
-        typeArray.forEach(type => {
+        typeArray.forEach((type) => {
           types[type] = (types[type] || 0) + 1;
         });
       }
 
       if (Array.isArray(item.tags)) {
-        item.tags.forEach(tag => {
+        item.tags.forEach((tag) => {
           tags[tag] = (tags[tag] || 0) + 1;
         });
       }
 
       if (item.publication_date) {
         let year;
-  
-        // Check if the date is in 'YYYY-MM-DD' format or 'YYYY' format and parse correctly
-        if (typeof item.publication_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
-          year = parseInt(item.publication_date.split('-')[0], 10);
-        } else if (typeof item.publication_date === 'string' && /^\d{4}$/.test(item.publication_date)) {
-          year = parseInt(item.publication_date, 10);
+
+        // Parse the publication date
+        if (typeof item.publication_date === 'string') {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(item.publication_date)) {
+            year = parseInt(item.publication_date.split('-')[0], 10);
+          } else if (/^\d{4}$/.test(item.publication_date)) {
+            year = parseInt(item.publication_date, 10);
+          } else {
+            const parsedDate = new Date(item.publication_date);
+            if (!isNaN(parsedDate)) {
+              year = parsedDate.getFullYear();
+            }
+          }
         } else if (typeof item.publication_date === 'number') {
-          year = item.publication_date; // If the year is provided as a number
+          year = item.publication_date;
         }
 
-        if (year && year >= 1900 && year <= new Date().getFullYear()) {
+        // Include years up to the current year
+        if (year && year >= 1900 && year <= currentYear) {
           publicationDates[year] = (publicationDates[year] || 0) + 1;
           minYear = Math.min(minYear, year);
-          maxYear = Math.max(maxYear, year);
+          // maxYear remains as currentYear
         }
       }
 
       if (item.submission_date) {
         // Extract the full date in 'YYYY-MM-DD' format
         const submissionDate = item.submission_date.split('T')[0];
-        submissionDates[submissionDate] = (submissionDates[submissionDate] || 0) + 1;
+        submissionDates[submissionDate] =
+          (submissionDates[submissionDate] || 0) + 1;
       }
     });
 
     setDateRange({
       min: Object.keys(publicationDates).length > 0 ? minYear : dateRange.min,
-      max: Object.keys(publicationDates).length > 0 ? maxYear : dateRange.max,
+      max: currentYear, // Ensure maxYear is set to current year
     });
 
     setFacets({
-      authors: Object.keys(authors).map(key => ({ key, doc_count: authors[key] })),
-      licenses: Object.keys(licenses).map(key => ({ key, doc_count: licenses[key] })),
-      types: Object.keys(types).map(key => ({ key, doc_count: types[key] })),
-      tags: Object.keys(tags).map(key => ({ key, doc_count: tags[key] })),
-      publication_dates: Object.keys(publicationDates).map(key => ({
-        year: parseInt(key, 10),
-        count: publicationDates[key]
+      authors: Object.keys(authors).map((key) => ({
+        key,
+        doc_count: authors[key],
       })),
-      submission_dates: Object.keys(submissionDates).map(key => ({ key, doc_count: submissionDates[key] })),
+      licenses: Object.keys(licenses).map((key) => ({
+        key,
+        doc_count: licenses[key],
+      })),
+      types: Object.keys(types).map((key) => ({
+        key,
+        doc_count: types[key],
+      })),
+      tags: Object.keys(tags).map((key) => ({ key, doc_count: tags[key] })),
+      publication_dates: Object.keys(publicationDates).map((key) => ({
+        year: parseInt(key, 10),
+        count: publicationDates[key],
+      })),
+      submission_dates: Object.keys(submissionDates).map((key) => ({
+        key,
+        doc_count: submissionDates[key],
+      })),
     });
   };
 
   const handleFilter = (field, value) => {
     const updatedFilters = { ...selectedFilters };
     if (updatedFilters[field]?.includes(value)) {
-      updatedFilters[field] = updatedFilters[field].filter(item => item !== value);
+      updatedFilters[field] = updatedFilters[field].filter(
+        (item) => item !== value
+      );
     } else {
       updatedFilters[field] = [...(updatedFilters[field] || []), value];
     }
@@ -152,7 +181,7 @@ const MaterialPage = () => {
   };
 
   const handleDateRangeChange = (field, range) => {
-    setSelectedFilters(prevFilters => ({
+    setSelectedFilters((prevFilters) => ({
       ...prevFilters,
       [field]: range,
     }));
@@ -160,20 +189,34 @@ const MaterialPage = () => {
 
   const filteredMaterials = materials.filter((material) => {
     return Object.keys(selectedFilters).every((field) => {
-      if (field === "publication_date" && material.publication_date) {
+      if (field === 'publication_date' && material.publication_date) {
         const selectedRange = selectedFilters[field];
-        if (!selectedRange || (selectedRange[0] === dateRange.min && selectedRange[1] === dateRange.max)) {
+        const currentYear = new Date().getFullYear();
+
+        const publicationYear =
+          typeof material.publication_date === 'string'
+            ? parseInt(material.publication_date.split('-')[0], 10)
+            : typeof material.publication_date === 'number'
+            ? material.publication_date
+            : null;
+
+        // Exclude materials with future publication dates
+        if (publicationYear > currentYear) {
+          return false;
+        }
+
+        if (
+          !selectedRange ||
+          (selectedRange[0] === dateRange.min &&
+            selectedRange[1] === dateRange.max)
+        ) {
           return true;
         }
 
-        const publicationYear = 
-          typeof material.publication_date === 'string'
-            ? parseInt(material.publication_date.split("-")[0], 10)
-            : typeof material.publication_date === 'number'
-              ? material.publication_date
-              : null;
-
-        return publicationYear >= selectedRange[0] && publicationYear <= selectedRange[1];
+        return (
+          publicationYear >= selectedRange[0] &&
+          publicationYear <= selectedRange[1]
+        );
       }
 
       if (field === 'submission_date' && material.submission_date) {
@@ -196,13 +239,18 @@ const MaterialPage = () => {
   });
 
   const highlightFields = Object.keys(selectedFilters)
-    .filter(field => field !== 'publication_date' && field !== 'submission_date')
-    .map(field => selectedFilters[field])
+    .filter(
+      (field) => field !== 'publication_date' && field !== 'submission_date'
+    )
+    .map((field) => selectedFilters[field])
     .flat();
 
   const indexOfLastMaterial = currentPage * itemsPerPage;
   const indexOfFirstMaterial = indexOfLastMaterial - itemsPerPage;
-  const currentMaterials = filteredMaterials.slice(indexOfFirstMaterial, indexOfLastMaterial);
+  const currentMaterials = filteredMaterials.slice(
+    indexOfFirstMaterial,
+    indexOfLastMaterial
+  );
   const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
@@ -213,12 +261,34 @@ const MaterialPage = () => {
 
   return (
     <div>
-      <div className="container-fluid py-5 mb-5 searchbar-header" style={{ position: 'relative', backgroundImage: `url(${bgSearchbar})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.1)' }}></div>
-        <div className="container py-5" style={{ position: 'relative', zIndex: 1 }}>
+      <div
+        className="container-fluid py-5 mb-5 searchbar-header"
+        style={{
+          position: 'relative',
+          backgroundImage: `url(${bgSearchbar})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+          }}
+        ></div>
+        <div
+          className="container py-5"
+          style={{ position: 'relative', zIndex: 1 }}
+        >
           <div className="row justify-content-center py-5">
             <div className="col-lg-10 pt-lg-5 mt-lg-5 text-center">
-              <h1 className="display-3 text-white mb-3 animated slideInDown">Materials</h1>
+              <h1 className="display-3 text-white mb-3 animated slideInDown">
+                Materials
+              </h1>
             </div>
           </div>
         </div>
@@ -230,11 +300,35 @@ const MaterialPage = () => {
             <h3>Filter by</h3>
             {Object.keys(facets).length > 0 ? (
               <>
-                <FilterCard title="Licenses" items={facets.licenses || []} field="license" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                <FilterCard title="Authors" items={facets.authors || []} field="authors" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                <FilterCard title="Types" items={facets.types || []} field="type" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                <FilterCard title="Tags" items={facets.tags || []} field="tags" selectedFilters={selectedFilters} handleFilter={handleFilter} />
-                
+                <FilterCard
+                  title="Licenses"
+                  items={facets.licenses || []}
+                  field="license"
+                  selectedFilters={selectedFilters}
+                  handleFilter={handleFilter}
+                />
+                <FilterCard
+                  title="Authors"
+                  items={facets.authors || []}
+                  field="authors"
+                  selectedFilters={selectedFilters}
+                  handleFilter={handleFilter}
+                />
+                <FilterCard
+                  title="Types"
+                  items={facets.types || []}
+                  field="type"
+                  selectedFilters={selectedFilters}
+                  handleFilter={handleFilter}
+                />
+                <FilterCard
+                  title="Tags"
+                  items={facets.tags || []}
+                  field="tags"
+                  selectedFilters={selectedFilters}
+                  handleFilter={handleFilter}
+                />
+
                 {facets.publication_dates && (
                   <FilterCard
                     title="Publication Date"
@@ -245,6 +339,8 @@ const MaterialPage = () => {
                     dateRange={dateRange}
                     onDateRangeChange={handleDateRangeChange}
                     publicationData={facets.publication_dates}
+                    minYear={dateRange.min}
+                    // No need to pass maxYear since it's the current year
                   />
                 )}
                 {facets.submission_dates && (
@@ -264,8 +360,17 @@ const MaterialPage = () => {
 
           <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <p>Showing {indexOfFirstMaterial + 1} to {indexOfLastMaterial > filteredMaterials.length ? filteredMaterials.length : indexOfLastMaterial} of {filteredMaterials.length} materials</p>
-              <PagesSelection itemsPerPage={itemsPerPage} onItemsPerPageChange={handleItemsPerPageChange} />
+              <p>
+                Showing {indexOfFirstMaterial + 1} to{' '}
+                {indexOfLastMaterial > filteredMaterials.length
+                  ? filteredMaterials.length
+                  : indexOfLastMaterial}{' '}
+                of {filteredMaterials.length} materials
+              </p>
+              <PagesSelection
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
             </div>
 
             {hasLoaded ? (
@@ -292,7 +397,11 @@ const MaterialPage = () => {
                       <p>No materials found with the current filters.</p>
                     )}
                   </div>
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </>
               )
             ) : (
