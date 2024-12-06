@@ -11,20 +11,21 @@ import {
 import 'rc-slider/assets/index.css';
 
 const PublicationDateSlider = ({
-  minYear,
+  minYear = 2005,
   onDateRangeChange,
-  selectedRange,
   publicationData,
 }) => {
   const currentYear = new Date().getFullYear();
-  const [range, setRange] = useState(
-    selectedRange || [minYear || 2005, currentYear]
-  );
+  
+  // Always start with the default full range
+  const [range, setRange] = useState([minYear, currentYear]);
   const [selectedPreset, setSelectedPreset] = useState(null);
 
+  // If minYear or currentYear changes (unlikely), reset to the full range
   useEffect(() => {
-    setRange(selectedRange || [minYear || 2005, currentYear]);
-  }, [minYear, selectedRange]);
+    setRange([minYear, currentYear]);
+    setSelectedPreset(null);
+  }, [minYear, currentYear]);
 
   const handleRangeChange = (value) => {
     setRange(value);
@@ -37,9 +38,11 @@ const PublicationDateSlider = ({
     const newRange = [startYear, currentYear];
 
     if (selectedPreset === yearsAgo) {
+      // Reset to the full range again
       setSelectedPreset(null);
-      setRange([minYear || 2005, currentYear]);
-      onDateRangeChange([minYear || 2005, currentYear]);
+      const resetRange = [minYear, currentYear];
+      setRange(resetRange);
+      onDateRangeChange(resetRange);
     } else {
       setSelectedPreset(yearsAgo);
       setRange(newRange);
@@ -52,14 +55,9 @@ const PublicationDateSlider = ({
       <h5>Publication Date Range</h5>
 
       {/* Histogram above the slider */}
-      <div
-        style={{ position: 'relative', height: '60px', marginBottom: '10px' }}
-      >
+      <div style={{ position: 'relative', height: '60px', marginBottom: '10px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={publicationData}
-            margin={{ top: 0, right: 10, left: 10, bottom: 0 }}
-          >
+          <BarChart data={publicationData} margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
             <XAxis dataKey="year" hide />
             <YAxis hide />
             <Tooltip />
@@ -71,7 +69,7 @@ const PublicationDateSlider = ({
       {/* Slider below the histogram */}
       <Slider
         range
-        min={minYear || 2005}
+        min={minYear}
         max={currentYear}
         value={range}
         onChange={handleRangeChange}
@@ -81,11 +79,7 @@ const PublicationDateSlider = ({
       {/* Range Labels */}
       <div
         className="range-labels"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginTop: '10px',
-        }}
+        style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}
       >
         <span>{range[0]}</span>
         <span>{range[1]}</span>
@@ -96,9 +90,7 @@ const PublicationDateSlider = ({
         {[1, 2, 3, 5].map((yearsAgo) => (
           <div
             key={yearsAgo}
-            className={`toggle-button ${
-              selectedPreset === yearsAgo ? 'selected' : ''
-            }`}
+            className={`toggle-button ${selectedPreset === yearsAgo ? 'selected' : ''}`}
             onClick={() => handlePresetToggle(yearsAgo)}
           >
             Past {yearsAgo} year{yearsAgo > 1 ? 's' : ''}
