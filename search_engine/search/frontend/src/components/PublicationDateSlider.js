@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Slider from 'rc-slider';
 import {
   BarChart,
@@ -11,21 +11,24 @@ import {
 import 'rc-slider/assets/index.css';
 
 const PublicationDateSlider = ({
-  minYear = 2005,
   onDateRangeChange,
-  publicationData,
+  publicationData = [],
 }) => {
   const currentYear = new Date().getFullYear();
-  
-  // Always start with the default full range
-  const [range, setRange] = useState([minYear, currentYear]);
+
+  const computedMinYear = useMemo(() => {
+    if (!publicationData.length) return currentYear;
+    return Math.min(...publicationData.map((d) => d.year));
+  }, [publicationData, currentYear]);
+
+  const [range, setRange] = useState([computedMinYear, currentYear]);
   const [selectedPreset, setSelectedPreset] = useState(null);
 
-  // If minYear or currentYear changes (unlikely), reset to the full range
+  // If the publicationData changes or computedMinYear changes, reset the range
   useEffect(() => {
-    setRange([minYear, currentYear]);
+    setRange([computedMinYear, currentYear]);
     setSelectedPreset(null);
-  }, [minYear, currentYear]);
+  }, [computedMinYear, currentYear]);
 
   const handleRangeChange = (value) => {
     setRange(value);
@@ -40,7 +43,7 @@ const PublicationDateSlider = ({
     if (selectedPreset === yearsAgo) {
       // Reset to the full range again
       setSelectedPreset(null);
-      const resetRange = [minYear, currentYear];
+      const resetRange = [computedMinYear, currentYear];
       setRange(resetRange);
       onDateRangeChange(resetRange);
     } else {
@@ -69,7 +72,7 @@ const PublicationDateSlider = ({
       {/* Slider below the histogram */}
       <Slider
         range
-        min={minYear}
+        min={computedMinYear}
         max={currentYear}
         value={range}
         onChange={handleRangeChange}
