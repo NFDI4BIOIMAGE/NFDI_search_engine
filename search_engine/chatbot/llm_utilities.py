@@ -21,6 +21,7 @@ class LLMUtilities:
             raise EnvironmentError("Missing Hugging Face token.")
         self.pipeline = self._load_model()
 
+
     def _load_model(self):
         """
         Load the specified model and tokenizer, optimized for GPU if enabled.
@@ -32,16 +33,17 @@ class LLMUtilities:
         try:
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
-                use_auth_token=self.token
+                token=self.token  # Updated from use_auth_token to token
             )
             tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name,
-                use_auth_token=self.token
+                token=self.token  # Updated from use_auth_token to token
             )
             return pipeline("text-generation", model=model, tokenizer=tokenizer, device=0 if self.use_gpu else -1)
         except Exception as e:
             logger.error(f"Error loading model '{self.model_name}': {e}")
             raise e
+
 
     def generate_response(self, prompt, max_length=200, num_return_sequences=1):
         """
