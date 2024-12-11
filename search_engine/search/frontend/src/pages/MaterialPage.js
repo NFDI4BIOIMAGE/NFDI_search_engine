@@ -74,35 +74,39 @@ const MaterialPage = () => {
     let minYear = currentYear;
 
     data.forEach((item) => {
+      // Ensure fields are arrays if they are not
+      const itemAuthors = Array.isArray(item.authors)
+        ? item.authors
+        : (typeof item.authors === 'string' ? [item.authors] : []);
+      const itemLicenses = Array.isArray(item.license)
+        ? item.license.filter(Boolean)
+        : (item.license ? [item.license] : []);
+      const itemTypes = Array.isArray(item.type)
+        ? item.type.filter(Boolean)
+        : (item.type ? [item.type] : []);
+      const itemTags = Array.isArray(item.tags)
+        ? item.tags
+        : (item.tags ? [item.tags] : []);
+
       // Authors
-      if (Array.isArray(item.authors)) {
-        item.authors.forEach((author) => {
-          authors[author] = (authors[author] || 0) + 1;
-        });
-      }
+      itemAuthors.forEach((author) => {
+        authors[author] = (authors[author] || 0) + 1;
+      });
 
       // Licenses
-      (Array.isArray(item.license)
-        ? item.license
-        : [item.license]?.filter(Boolean)
-      ).forEach((license) => {
+      itemLicenses.forEach((license) => {
         licenses[license] = (licenses[license] || 0) + 1;
       });
 
       // Types
-      (Array.isArray(item.type)
-        ? item.type
-        : [item.type]?.filter(Boolean)
-      ).forEach((t) => {
+      itemTypes.forEach((t) => {
         types[t] = (types[t] || 0) + 1;
       });
 
       // Tags
-      if (Array.isArray(item.tags)) {
-        item.tags.forEach((tag) => {
-          tags[tag] = (tags[tag] || 0) + 1;
-        });
-      }
+      itemTags.forEach((tag) => {
+        tags[tag] = (tags[tag] || 0) + 1;
+      });
 
       // Publication Dates
       const pubDate = item.publication_date;
@@ -215,11 +219,14 @@ const MaterialPage = () => {
 
       if (filters.length === 0) return true;
 
-      const fieldValue = material[field];
+      let fieldValue = material[field];
+      // Ensure fieldValue is an array for uniform filtering
+      if (fieldValue && !Array.isArray(fieldValue)) {
+        fieldValue = [fieldValue];
+      }
+
       return filters.some((filterValue) =>
-        Array.isArray(fieldValue)
-          ? fieldValue.includes(filterValue)
-          : fieldValue === filterValue
+        fieldValue ? fieldValue.includes(filterValue) : false
       );
     })
   );
@@ -242,7 +249,7 @@ const MaterialPage = () => {
     setCurrentPage(1);
   };
 
-  // Destructure facets with default values for convenience
+  // Destructure facets with default values
   const {
     authors = [],
     licenses = [],
@@ -252,7 +259,6 @@ const MaterialPage = () => {
     submission_dates = []
   } = facets;
 
-  // Helper function to render filter cards
   const renderFilterCard = (title, items, field, extraProps = {}) =>
     items.length > 0 && (
       <FilterCard

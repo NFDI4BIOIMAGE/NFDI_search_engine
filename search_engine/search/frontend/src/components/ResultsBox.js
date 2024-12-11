@@ -2,7 +2,10 @@ import React from 'react';
 import { Card } from 'react-bootstrap';
 
 const ResultsBox = ({ title, url, authors, description, license, type, tags, highlights }) => {
-  // Filter highlights to exclude non-relevant fields
+  // Ensure authors and tags are arrays or strings
+  const itemAuthors = Array.isArray(authors) ? authors : (typeof authors === 'string' ? [authors] : []);
+  const itemTags = Array.isArray(tags) ? tags : (typeof tags === 'string' ? [tags] : []);
+
   const relevantHighlights = highlights.filter(
     highlight => typeof highlight === 'string' && highlight.trim().length > 0
   );
@@ -10,8 +13,7 @@ const ResultsBox = ({ title, url, authors, description, license, type, tags, hig
   // Function to highlight search terms or selected filters in the text
   const highlightText = (text, highlights) => {
     if (!text) return text;
-
-    if (highlights.length === 0) return text; // No valid highlights to apply
+    if (highlights.length === 0) return text;
 
     const regex = new RegExp(`(${highlights.join('|')})`, 'gi');
     return text.split(regex).map((part, i) =>
@@ -23,30 +25,27 @@ const ResultsBox = ({ title, url, authors, description, license, type, tags, hig
     );
   };
 
-  // Safely format authors and tags
-  const formattedAuthors = Array.isArray(authors) ? authors.join('; ') : authors || 'N/A';
-  const formattedTags = tags ? tags.join(', ') : 'N/A';
+  const formattedAuthors = itemAuthors.length > 0 ? itemAuthors.join('; ') : 'N/A';
+  const formattedTags = itemTags.length > 0 ? itemTags.join(', ') : 'N/A';
 
-  // Determine if URL is a single link or a list of links
-  const urls = Array.isArray(url) ? url : [url];
+  // Ensure URLs is always an array
+  const urls = Array.isArray(url) ? url : (url ? [url] : []);
   const mainUrl = urls[0];
   const additionalUrls = urls.slice(1);
 
   return (
     <Card className="mb-3 shadow-lg" style={{ borderRadius: '8px', overflow: 'hidden', border: '0.3px solid #ddd' }}>
       <Card.Body>
-        {/* Clickable title integrated with the main URL */}
         <Card.Title>
           {mainUrl ? (
             <a href={mainUrl} target="_blank" rel="noopener noreferrer" className="text-decoration-none" style={{ color: '#1a0dab', fontSize: '1.25rem', fontWeight: 'bold' }}>
               {highlightText(title, relevantHighlights)}
             </a>
           ) : (
-            title
+            highlightText(title, relevantHighlights)
           )}
         </Card.Title>
 
-        {/* Additional links */}
         {additionalUrls.length > 0 && (
           <Card.Text style={{ fontSize: '0.9rem', marginBottom: '10px' }}>
             <strong>Additional links:</strong>{' '}
@@ -60,21 +59,24 @@ const ResultsBox = ({ title, url, authors, description, license, type, tags, hig
           </Card.Text>
         )}
 
-        {/* Authors */}
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
           <strong>Authors:</strong> {highlightText(formattedAuthors, relevantHighlights)}
         </Card.Text>
 
-        {/* Other fields */}
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
-          <strong>License:</strong> {license || 'N/A'}
+          <strong>License:</strong>{' '}
+          {Array.isArray(license) ? license.join(', ') : (license || 'N/A')}
         </Card.Text>
+
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
-          <strong>Type:</strong> {type || 'N/A'}
+          <strong>Type:</strong>{' '}
+          {Array.isArray(type) ? type.join(', ') : (type || 'N/A')}
         </Card.Text>
+
         <Card.Text style={{ color: '#333', marginBottom: '10px' }}>
           <strong>Tags:</strong> {highlightText(formattedTags, relevantHighlights)}
         </Card.Text>
+
         <Card.Text style={{ color: '#333', fontSize: '0.9rem', marginBottom: '0' }}>
           <strong>Abstract:</strong> {description || 'N/A'}
         </Card.Text>

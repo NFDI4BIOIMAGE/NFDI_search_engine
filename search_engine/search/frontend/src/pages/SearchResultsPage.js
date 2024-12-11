@@ -21,7 +21,14 @@ const SearchResultsPage = () => {
   const [selectedFilters, setSelectedFilters] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [facets, setFacets] = useState({ authors: [], types: [], tags: [], licenses: [], publication_dates: [], submission_dates: [] });
+  const [facets, setFacets] = useState({
+    authors: [],
+    types: [],
+    tags: [],
+    licenses: [],
+    publication_dates: [],
+    submission_dates: []
+  });
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
@@ -37,62 +44,76 @@ const SearchResultsPage = () => {
           setResults(response.data);
           setHasSearched(true);
 
-          const authors = {};
-          const licenses = {};
-          const types = {};
-          const tags = {};
-          const publicationDates = {};
-          const submissionDates = {};
+          const authorsCount = {};
+          const licensesCount = {};
+          const typesCount = {};
+          const tagsCount = {};
+          const publicationDatesCount = {};
+          const submissionDatesCount = {};
 
           response.data.forEach((item) => {
-            const source = item._source;
+            const source = item._source || {};
+            
+            // Ensure authors is an array
+            const itemAuthors = Array.isArray(source.authors)
+              ? source.authors
+              : (typeof source.authors === 'string' ? [source.authors] : []);
 
-            if (Array.isArray(source.authors)) {
-              source.authors.forEach((author) => {
-                authors[author] = (authors[author] || 0) + 1;
-              });
-            }
-
-            const licenseArray = Array.isArray(source.license) ? source.license : [source.license];
-            licenseArray.forEach((license) => {
-              licenses[license] = (licenses[license] || 0) + 1;
+            itemAuthors.forEach((author) => {
+              authorsCount[author] = (authorsCount[author] || 0) + 1;
             });
 
-            const typeArray = Array.isArray(source.type) ? source.type : [source.type];
-            typeArray.forEach((type) => {
-              types[type] = (types[type] || 0) + 1;
+            // Ensure license is an array
+            const itemLicenses = Array.isArray(source.license)
+              ? source.license
+              : (source.license ? [source.license] : []);
+
+            itemLicenses.forEach((license) => {
+              licensesCount[license] = (licensesCount[license] || 0) + 1;
             });
 
-            if (Array.isArray(source.tags)) {
-              source.tags.forEach((tag) => {
-                tags[tag] = (tags[tag] || 0) + 1;
-              });
-            }
+            // Ensure type is an array
+            const itemTypes = Array.isArray(source.type)
+              ? source.type
+              : (source.type ? [source.type] : []);
+
+            itemTypes.forEach((type) => {
+              typesCount[type] = (typesCount[type] || 0) + 1;
+            });
+
+            // Ensure tags is an array
+            const itemTags = Array.isArray(source.tags)
+              ? source.tags
+              : (source.tags ? [source.tags] : []);
+
+            itemTags.forEach((tag) => {
+              tagsCount[tag] = (tagsCount[tag] || 0) + 1;
+            });
 
             if (source.publication_date) {
               const year = source.publication_date.toString().split('-')[0];
-              publicationDates[year] = (publicationDates[year] || 0) + 1;
+              publicationDatesCount[year] = (publicationDatesCount[year] || 0) + 1;
             }
 
             if (source.submission_date) {
               // Extract the full date in 'YYYY-MM-DD' format
               const submissionDate = source.submission_date.split('T')[0];
-              submissionDates[submissionDate] = (submissionDates[submissionDate] || 0) + 1;
+              submissionDatesCount[submissionDate] = (submissionDatesCount[submissionDate] || 0) + 1;
             }
           });
 
           setFacets({
-            authors: Object.keys(authors).map((key) => ({ key, doc_count: authors[key] })),
-            licenses: Object.keys(licenses).map((key) => ({ key, doc_count: licenses[key] })),
-            types: Object.keys(types).map((key) => ({ key, doc_count: types[key] })),
-            tags: Object.keys(tags).map((key) => ({ key, doc_count: tags[key] })),
-            publication_dates: Object.keys(publicationDates).map((key) => ({
+            authors: Object.keys(authorsCount).map((key) => ({ key, doc_count: authorsCount[key] })),
+            licenses: Object.keys(licensesCount).map((key) => ({ key, doc_count: licensesCount[key] })),
+            types: Object.keys(typesCount).map((key) => ({ key, doc_count: typesCount[key] })),
+            tags: Object.keys(tagsCount).map((key) => ({ key, doc_count: tagsCount[key] })),
+            publication_dates: Object.keys(publicationDatesCount).map((key) => ({
               key,
-              doc_count: publicationDates[key],
+              doc_count: publicationDatesCount[key],
             })),
-            submission_dates: Object.keys(submissionDates).map((key) => ({
+            submission_dates: Object.keys(submissionDatesCount).map((key) => ({
               key,
-              doc_count: submissionDates[key],
+              doc_count: submissionDatesCount[key],
             })),
           });
         })
@@ -150,17 +171,16 @@ const SearchResultsPage = () => {
       }
 
       if (field === 'submission_dates' && resultField) {
-        const submissionDate = resultField.toString().split('T')[0]; // Extract 'YYYY-MM-DD'
+        const submissionDate = resultField.toString().split('T')[0];
         return selectedFilters[field].includes(submissionDate);
       }
 
-      if (Array.isArray(resultField)) {
-        return selectedFilters[field].some((filter) => resultField.includes(filter));
-      } else if (typeof resultField === 'string') {
-        return selectedFilters[field].includes(resultField);
-      } else {
-        return false;
-      }
+      // Ensure comparison is done with arrays
+      const fieldValues = Array.isArray(resultField)
+        ? resultField
+        : (typeof resultField === 'string' ? [resultField] : []);
+
+      return selectedFilters[field].some((filter) => fieldValues.includes(filter));
     });
   });
 
