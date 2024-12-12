@@ -131,7 +131,7 @@ Based on the following documents, answer the user's question concisely and inclu
 ## Question
 {query}
 """
-    return llm_util.generate_response(prompt, max_length=200)
+    return llm_util.generate_response(prompt)
 
 # Chatbot API endpoint
 @app.route("/api/chat", methods=["POST"])
