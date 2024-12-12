@@ -1,6 +1,7 @@
 import os
 import logging
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -10,39 +11,61 @@ class LLMUtilities:
         Initialize the utility with the specified model and device configuration.
 
         Args:
-            model_name (str): The Hugging Face model name to load (Llama 2 HF format).
+            model_name (str): The Hugging Face model name to load.
             use_gpu (bool): Whether to use GPU for inference.
         """
         self.model_name = model_name
         self.use_gpu = use_gpu
         self.token = os.getenv("HF_TOKEN")
         if not self.token:
-            logger.error("HF_TOKEN is not set in the environment variables. Please set it to access the Hugging Face model.")
-            raise EnvironmentError("Missing Hugging Face token.")
+            logger.error("HF_TOKEN is not set. Please set it to access the Hugging Face model.")
+            # Raise a more descriptive error
+            raise EnvironmentError("Missing Hugging Face token. Set HF_TOKEN as an environment variable.")
+
         self.pipeline = self._load_model()
 
     def _load_model(self):
         """
         Load the specified model and tokenizer, optimized for GPU if enabled.
+        Uses `device_map='auto'` to offload layers and `torch_dtype=torch.float16` to reduce memory usage.
+        If no GPU is available, it will run on CPU automatically.
 
         Returns:
             pipeline: The Hugging Face pipeline for text generation.
         """
         logger.info(f"Loading model '{self.model_name}' with {'GPU' if self.use_gpu else 'CPU'} inference.")
+
+        # Determine device map
+        device_map = "auto"
+        torch_dtype = torch.float16
+
+        # If no GPU is available or USE_GPU is False, we still use 'auto', which should default to CPU.
+        # For large models, consider using a smaller model or additional optimization methods.
+
         try:
-            # For Llama 2 models, you need trust_remote_code=True
-            # and the HF token must have been authorized for the model.
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 token=self.token,
-                trust_remote_code=True
+                trust_remote_code=True,
+                device_map=device_map,
+                torch_dtype=torch_dtype
             )
             tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name,
                 token=self.token,
                 trust_remote_code=True
             )
-            return pipeline("text-generation", model=model, tokenizer=tokenizer, device=0 if self.use_gpu else -1)
+
+            # Create a text generation pipeline
+            # Note: We disable `pad_token_id` warnings by setting it to the `eos_token_id`
+            return pipeline(
+                "text-generation",
+                model=model,
+                tokenizer=tokenizer,
+                torch_dtype=torch_dtype,
+                device_map=device_map,
+                pad_token_id=tokenizer.eos_token_id
+            )
         except Exception as e:
             logger.error(f"Error loading model '{self.model_name}': {e}")
             raise e
@@ -61,6 +84,7 @@ class LLMUtilities:
         """
         try:
             response = self.pipeline(prompt, max_length=max_length, num_return_sequences=num_return_sequences)
+            # The model might produce output with repeated prompt; consider post-processing if needed.
             return response[0]["generated_text"].strip()
         except Exception as e:
             logger.error(f"Error during response generation: {e}")

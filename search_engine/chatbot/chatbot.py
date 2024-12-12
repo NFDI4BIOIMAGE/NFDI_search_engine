@@ -47,7 +47,7 @@ def connect_elasticsearch():
         try:
             es = Elasticsearch(
                 [{"host": es_host, "port": es_port, "scheme": "http"}],
-                request_timeout=30  # Updated from 'timeout' to 'request_timeout'
+                request_timeout=30
             )
             if es.ping():
                 logger.info("Connected to Elasticsearch")
@@ -56,7 +56,7 @@ def connect_elasticsearch():
                 logger.error("Elasticsearch ping failed")
         except ConnectionError:
             logger.warning(f"Elasticsearch not ready, attempt {attempt + 1}/{max_attempts}, retrying in 15 seconds...")
-            time.sleep(15)  # Increase wait time to 15 seconds
+            time.sleep(15)
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
             time.sleep(15)
@@ -65,9 +65,12 @@ def connect_elasticsearch():
 # Connect to Elasticsearch
 es = connect_elasticsearch()
 
-# Initialize LLM Utilities
-use_gpu = False  # Set to True if you have a GPU and compatible CUDA drivers
-llm_util = LLMUtilities(use_gpu=use_gpu)
+# Determine if GPU should be used (if available)
+use_gpu_env = os.getenv("USE_GPU", "False").lower() == "true"
+# Initialize LLM Utilities with environment-driven model name
+model_name = os.getenv("MODEL_NAME", "meta-llama/Llama-2-7b-hf")
+
+llm_util = LLMUtilities(model_name=model_name, use_gpu=use_gpu_env)
 
 # Elasticsearch-based document retrieval
 def retrieve_documents(query, top_k=3):
@@ -128,7 +131,7 @@ Based on the following documents, answer the user's question concisely and inclu
 ## Question
 {query}
 """
-    return llm_util.generate_response(prompt)
+    return llm_util.generate_response(prompt, max_length=200)
 
 # Chatbot API endpoint
 @app.route("/api/chat", methods=["POST"])
@@ -153,5 +156,5 @@ def chat():
 
 # Main entry point
 if __name__ == "__main__":
-    logger.info(f"Starting chatbot on {'GPU' if use_gpu else 'CPU'}...")
+    logger.info(f"Starting chatbot on {'GPU' if use_gpu_env else 'CPU'}...")
     app.run(host="0.0.0.0", port=5000, debug=True)

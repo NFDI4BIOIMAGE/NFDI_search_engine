@@ -5,3 +5,4 @@ pyyaml
 requests
 transformers
 optimum[openvino]
+accelerate
