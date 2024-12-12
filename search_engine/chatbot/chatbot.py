@@ -5,6 +5,7 @@ from llm_utilities import LLMUtilities
 import logging
 import platform
 import time
+import os
 
 # Flask app setup
 app = Flask(__name__)
@@ -32,11 +33,21 @@ def connect_elasticsearch():
     """
     es = None
     max_attempts = 120  # Increase max attempts to 120 (20 minutes)
+    es_host = os.getenv("ELASTICSEARCH_HOST", "elasticsearch")
+    es_port = os.getenv("ELASTICSEARCH_PORT", "9200")
+
+    # Convert es_port to integer
+    try:
+        es_port = int(es_port)
+    except ValueError:
+        logger.error(f"ELASTICSEARCH_PORT is not a valid integer: {es_port}")
+        raise
+
     for attempt in range(max_attempts):
         try:
             es = Elasticsearch(
-                [{"host": "elasticsearch", "port": 9200, "scheme": "http"}],
-                timeout=30
+                [{"host": es_host, "port": es_port, "scheme": "http"}],
+                request_timeout=30  # Updated from 'timeout' to 'request_timeout'
             )
             if es.ping():
                 logger.info("Connected to Elasticsearch")
@@ -51,12 +62,11 @@ def connect_elasticsearch():
             time.sleep(15)
     raise Exception("Could not connect to Elasticsearch after several attempts")
 
-
 # Connect to Elasticsearch
 es = connect_elasticsearch()
 
 # Initialize LLM Utilities
-use_gpu = False  # Set to True to enable GPU inference
+use_gpu = False  # Set to True if you have a GPU and compatible CUDA drivers
 llm_util = LLMUtilities(use_gpu=use_gpu)
 
 # Elasticsearch-based document retrieval
@@ -107,17 +117,17 @@ def generate_response(query, documents):
         str: Generated response.
     """
     context = "\n".join(
-        [f"- {doc['name']}: {doc['description']}" for doc in documents]
+        [f"- {doc['name']}: {doc['description']} (URL: {doc['url']})" for doc in documents]
     )
     prompt = f"""
-    Based on the following documents, answer the user's question concisely and include relevant links.
+Based on the following documents, answer the user's question concisely and include relevant links.
 
-    ## Documents
-    {context}
+## Documents
+{context}
 
-    ## Question
-    {query}
-    """
+## Question
+{query}
+"""
     return llm_util.generate_response(prompt)
 
 # Chatbot API endpoint

@@ -5,12 +5,12 @@ from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 logger = logging.getLogger(__name__)
 
 class LLMUtilities:
-    def __init__(self, model_name="meta-llama/Llama-2-7b", use_gpu=False):
+    def __init__(self, model_name="meta-llama/Llama-2-7b-hf", use_gpu=False):
         """
         Initialize the utility with the specified model and device configuration.
 
         Args:
-            model_name (str): The Hugging Face model name to load.
+            model_name (str): The Hugging Face model name to load (Llama 2 HF format).
             use_gpu (bool): Whether to use GPU for inference.
         """
         self.model_name = model_name
@@ -21,7 +21,6 @@ class LLMUtilities:
             raise EnvironmentError("Missing Hugging Face token.")
         self.pipeline = self._load_model()
 
-
     def _load_model(self):
         """
         Load the specified model and tokenizer, optimized for GPU if enabled.
@@ -31,19 +30,22 @@ class LLMUtilities:
         """
         logger.info(f"Loading model '{self.model_name}' with {'GPU' if self.use_gpu else 'CPU'} inference.")
         try:
+            # For Llama 2 models, you need trust_remote_code=True
+            # and the HF token must have been authorized for the model.
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
-                token=self.token  # Updated from use_auth_token to token
+                token=self.token,
+                trust_remote_code=True
             )
             tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name,
-                token=self.token  # Updated from use_auth_token to token
+                token=self.token,
+                trust_remote_code=True
             )
             return pipeline("text-generation", model=model, tokenizer=tokenizer, device=0 if self.use_gpu else -1)
         except Exception as e:
             logger.error(f"Error loading model '{self.model_name}': {e}")
             raise e
-
 
     def generate_response(self, prompt, max_length=200, num_return_sequences=1):
         """
@@ -59,7 +61,7 @@ class LLMUtilities:
         """
         try:
             response = self.pipeline(prompt, max_length=max_length, num_return_sequences=num_return_sequences)
-            return response[0]["generated_text"]
+            return response[0]["generated_text"].strip()
         except Exception as e:
             logger.error(f"Error during response generation: {e}")
             return "Sorry, I couldn't generate a response."

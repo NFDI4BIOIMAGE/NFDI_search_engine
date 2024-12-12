@@ -18,7 +18,7 @@ RUN pip install --upgrade pip && pip install -r requirements_chatbot.txt
 COPY . .
 
 # Expose the port that the Flask app runs on
-EXPOSE 5000  
+EXPOSE 5000
 
 # Run the application
 CMD ["python", "chatbot.py"]

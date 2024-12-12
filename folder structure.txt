@@ -82,5 +82,6 @@
 │   └── elasticsearch setup
 ├── LICENSE
 ├── README
+├── .env
 ├── docker-compose
 └── folder structure
