@@ -6,3 +6,4 @@ requests
 transformers
 optimum[openvino]
 accelerate
+openai

@@ -15,12 +15,11 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Hardware Information
+# Hardware information (informational only; actual GPU inference is on KISSKI's side)
 SYSTEM_INFO = {
     "Machine": platform.node(),
     "Processor": platform.processor(),
-    "RAM": "64GB",
-    "GPU": "Intel Arc Graphics (shared memory: 37GB)"
+    "LocalGPU": "NVIDIA RTX 500 Ada Generation Laptop GPU (3.9GB dedicated / 37GB shared)"
 }
 logger.info(f"System Info: {SYSTEM_INFO}")
 
@@ -32,7 +31,7 @@ def connect_elasticsearch():
         Elasticsearch instance if connection is successful, otherwise raises an exception.
     """
     es = None
-    max_attempts = 120  # Increase max attempts to 120 (20 minutes)
+    max_attempts = 120  # up to 20 minutes
     es_host = os.getenv("ELASTICSEARCH_HOST", "elasticsearch")
     es_port = os.getenv("ELASTICSEARCH_PORT", "9200")
 
@@ -55,27 +54,30 @@ def connect_elasticsearch():
             else:
                 logger.error("Elasticsearch ping failed")
         except ConnectionError:
-            logger.warning(f"Elasticsearch not ready, attempt {attempt + 1}/{max_attempts}, retrying in 15 seconds...")
+            logger.warning(
+                f"Elasticsearch not ready, attempt {attempt + 1}/{max_attempts}, retrying in 15 seconds..."
+            )
             time.sleep(15)
         except Exception as e:
-            logger.error(f"Unexpected error: {e}")
+            logger.error(f"Unexpected error while connecting to Elasticsearch: {e}")
             time.sleep(15)
     raise Exception("Could not connect to Elasticsearch after several attempts")
 
 # Connect to Elasticsearch
 es = connect_elasticsearch()
 
-# Determine if GPU should be used (if available)
+# Determine if GPU usage is set (informational only in this remote KISSKI scenario)
 use_gpu_env = os.getenv("USE_GPU", "False").lower() == "true"
-# Initialize LLM Utilities with environment-driven model name
-model_name = os.getenv("MODEL_NAME", "meta-llama/Llama-2-7b-hf")
 
+# Model name to use on KISSKI; defaults to a 70B Llama model
+model_name = os.getenv("MODEL_NAME", "meta-llama-3.1-70b-instruct")
+
+# Initialize the LLM utility for KISSKI
 llm_util = LLMUtilities(model_name=model_name, use_gpu=use_gpu_env)
 
-# Elasticsearch-based document retrieval
 def retrieve_documents(query, top_k=3):
     """
-    Retrieves relevant documents from Elasticsearch based on the query.
+    Retrieves relevant documents from Elasticsearch based on a user query.
     Args:
         query (str): The search query.
         top_k (int): Number of top documents to retrieve.
@@ -106,18 +108,12 @@ def retrieve_documents(query, top_k=3):
         ]
         return documents
     except Exception as e:
-        logger.error(f"Error retrieving documents: {e}")
+        logger.error(f"Error retrieving documents from Elasticsearch: {e}")
         return []
 
-# RAG-based response generation
 def generate_response(query, documents):
     """
-    Generates a response using retrieved documents and the query.
-    Args:
-        query (str): The search query.
-        documents (list): List of retrieved documents.
-    Returns:
-        str: Generated response.
+    Generates a context-aware response from the KISSKI LLM using the provided query and document context.
     """
     context = "\n".join(
         [f"- {doc['name']}: {doc['description']} (URL: {doc['url']})" for doc in documents]
@@ -137,24 +133,23 @@ Based on the following documents, answer the user's question concisely and inclu
 @app.route("/api/chat", methods=["POST"])
 def chat():
     """
-    Chat endpoint to process user queries and generate responses.
+    Chat endpoint to process user queries and generate responses via the KISSKI LLM service.
     """
     user_query = request.json.get("query", "")
     if not user_query:
         return jsonify({"error": "Query cannot be empty"}), 400
 
-    # Retrieve relevant documents
+    # Retrieve relevant documents from Elasticsearch
     documents = retrieve_documents(user_query)
-
     if not documents:
         return jsonify({"response": "No relevant documents found.", "sources": []})
 
-    # Generate chatbot response
+    # Generate the chatbot response using the KISSKI LLM
     reply = generate_response(user_query, documents)
 
     return jsonify({"response": reply, "sources": documents})
 
 # Main entry point
 if __name__ == "__main__":
-    logger.info(f"Starting chatbot on {'GPU' if use_gpu_env else 'CPU'}...")
+    logger.info(f"Starting chatbot. GPU usage requested = {use_gpu_env}, model = {model_name}")
     app.run(host="0.0.0.0", port=5000, debug=True)

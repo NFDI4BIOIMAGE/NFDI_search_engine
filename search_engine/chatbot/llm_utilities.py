@@ -1,89 +1,55 @@
 import os
 import logging
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
-import torch
+import openai
 
 logger = logging.getLogger(__name__)
 
 class LLMUtilities:
-    def __init__(self, model_name="meta-llama/Llama-2-7b-hf", use_gpu=False):
+    """
+    A utility class for generating responses using the KISSKI LLM endpoint (OpenAI-compatible).
+    """
+    def __init__(self, model_name="meta-llama-3.1-70b-instruct", use_gpu=True):
         """
-        Initialize the utility with the specified model and device configuration.
-
+        Initialize the LLM utility with the specified model and GPU preference.
         Args:
-            model_name (str): The Hugging Face model name to load.
-            use_gpu (bool): Whether to use GPU for inference.
+            model_name (str): The KISSKI model name to load (e.g., "meta-llama-3.1-70b-instruct").
+            use_gpu (bool): Whether GPU usage is requested. Actual GPU usage depends on KISSKI's service.
         """
         self.model_name = model_name
         self.use_gpu = use_gpu
-        self.token = os.getenv("HF_TOKEN")
-        if not self.token:
-            logger.error("HF_TOKEN is not set. Please set it to access the Hugging Face model.")
-            raise EnvironmentError("Missing Hugging Face token. Set HF_TOKEN as an environment variable.")
 
-        self.pipeline = self._load_model()
+        # Use the KISSKI-provided API key from environment
+        openai.api_key = os.environ.get("KISSKI_API_KEY")
+        if not openai.api_key:
+            logger.error("Missing KISSKI_API_KEY environment variable.")
+            raise EnvironmentError("Please set KISSKI_API_KEY for KISSKI LLM access.")
 
-    def _load_model(self):
-        """
-        Load the specified model and tokenizer, optimized for GPU if enabled.
-        Uses `device_map='auto'` to offload layers and `torch_dtype=torch.float16` to reduce memory usage.
-        If no GPU is available, it will run on CPU automatically.
+        # Point OpenAI client to the KISSKI Chat AI endpoint
+        # The KISSKI service is an OpenAI-compatible API with a custom base_url
+        openai.api_base = "https://chat-ai.academiccloud.de/v1"
 
-        Returns:
-            pipeline: The Hugging Face pipeline for text generation.
-        """
-        logger.info(f"Loading model '{self.model_name}' with {'GPU' if self.use_gpu else 'CPU'} inference.")
-
-        device_map = "auto"
-        torch_dtype = torch.float16
-
-        try:
-            model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                token=self.token,
-                trust_remote_code=True,
-                device_map=device_map,
-                torch_dtype=torch_dtype
-            )
-            tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                token=self.token,
-                trust_remote_code=True
-            )
-
-            return pipeline(
-                "text-generation",
-                model=model,
-                tokenizer=tokenizer,
-                torch_dtype=torch_dtype,
-                device_map=device_map,
-                pad_token_id=tokenizer.eos_token_id
-            )
-        except Exception as e:
-            logger.error(f"Error loading model '{self.model_name}': {e}")
-            raise e
+        logger.info(f"KISSKI LLM configured with model '{self.model_name}'. GPU usage = {self.use_gpu}.")
 
     def generate_response(self, prompt, max_new_tokens=150, num_return_sequences=1):
         """
-        Generate a response based on the provided prompt.
-
+        Generate a response from the KISSKI LLM service based on the provided prompt.
         Args:
             prompt (str): The input prompt for the model.
-            max_new_tokens (int): How many new tokens to generate (beyond the prompt).
-            num_return_sequences (int): Number of response sequences to generate.
-
+            max_new_tokens (int): Maximum tokens to generate in the reply (beyond the prompt).
+            num_return_sequences (int): Number of response sequences to generate (defaults to 1).
         Returns:
-            str: The generated response.
+            str: The generated response text from the LLM.
         """
         try:
-            # Use max_new_tokens and truncation=True to allow the model to generate beyond the prompt.
-            response = self.pipeline(
-                prompt,
-                max_new_tokens=max_new_tokens,
-                num_return_sequences=num_return_sequences,
-                truncation=True
+            messages = [{"role": "user", "content": prompt}]
+            response = openai.ChatCompletion.create(
+                model=self.model_name,
+                messages=messages,
+                max_tokens=max_new_tokens,
+                n=num_return_sequences,
+                temperature=0.7
             )
-            return response[0]["generated_text"].strip()
+            return response.choices[0].message.content.strip()
         except Exception as e:
-            logger.error(f"Error during response generation: {e}")
+            logger.error(f"Error during response generation via KISSKI LLM: {e}")
             return f"Sorry, I couldn't generate a response. Error: {e}"

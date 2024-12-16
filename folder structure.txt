@@ -15,8 +15,13 @@
 │   │   └── Dockerfile
 │   ├── search
 │   │   ├── backend
+│   │   │   ├── wordcloud
+│   │   │   │   ├── generate_wordcloud.py
+│   │   │   │   ├── requirements_wordcloud.txt
+│   │   │   │   └── Dockerfile.txt
 │   │   │   ├── data.json
 │   │   │   ├── index_data.py
+│   │   │   ├── Dockerfile
 │   │   │   └── requirements_index.txt
 │   │   └── frontend
 │   │       ├── Dockerfile
