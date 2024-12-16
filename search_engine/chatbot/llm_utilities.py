@@ -32,7 +32,7 @@ class LLMUtilities:
             str: The generated response from the LLM.
         """
         try:
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model=self.model_name,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
