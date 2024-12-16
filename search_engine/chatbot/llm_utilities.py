@@ -9,6 +9,12 @@ class LLMUtilities:
     A utility class for generating responses using the KISSKI LLM endpoint (OpenAI-compatible).
     """
     def __init__(self, model_name="meta-llama-3.1-70b-instruct", use_gpu=True):
+        """
+        Initialize the LLM utility with the specified model and GPU preference.
+        Args:
+            model_name (str): The KISSKI model name to load (e.g., "meta-llama-3.1-70b-instruct").
+            use_gpu (bool): Whether GPU usage is requested. Actual GPU usage depends on KISSKI's service.
+        """
         self.model_name = model_name
         self.use_gpu = use_gpu
 
