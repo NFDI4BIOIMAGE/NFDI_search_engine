@@ -1,89 +1,44 @@
 import os
 import logging
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
-import torch
+import openai
 
 logger = logging.getLogger(__name__)
 
 class LLMUtilities:
-    def __init__(self, model_name="meta-llama/Llama-2-7b-hf", use_gpu=False):
+    def __init__(self, model_name="meta-llama/Meta-Llama-3.1-70B-Instruct"):
         """
-        Initialize the utility with the specified model and device configuration.
-
+        Initialize the utility to communicate with KISSKI/ScaDS.AI LLM service.
         Args:
-            model_name (str): The Hugging Face model name to load.
-            use_gpu (bool): Whether to use GPU for inference.
+            model_name (str): The LLM model name to use.
         """
         self.model_name = model_name
-        self.use_gpu = use_gpu
-        self.token = os.getenv("HF_TOKEN")
-        if not self.token:
-            logger.error("HF_TOKEN is not set. Please set it to access the Hugging Face model.")
-            raise EnvironmentError("Missing Hugging Face token. Set HF_TOKEN as an environment variable.")
+        self.api_key = os.getenv("SCADSAI_API_KEY")  # The environment variable must contain the HPC token
+        if not self.api_key:
+            logger.error("SCADSAI_API_KEY is not set. Please set it to access the HPC LLM endpoint.")
+            raise EnvironmentError("Missing SCADSAI_API_KEY environment variable.")
 
-        self.pipeline = self._load_model()
+        # Configure the openai library to use the KISSKI HPC endpoint
+        openai.api_key = self.api_key
+        openai.api_base = "https://llm.scads.ai/v1"
 
-    def _load_model(self):
+    def generate_response(self, prompt, max_tokens=512):
         """
-        Load the specified model and tokenizer, optimized for GPU if enabled.
-        Uses `device_map='auto'` to offload layers and `torch_dtype=torch.float16` to reduce memory usage.
-        If no GPU is available, it will run on CPU automatically.
-
-        Returns:
-            pipeline: The Hugging Face pipeline for text generation.
-        """
-        logger.info(f"Loading model '{self.model_name}' with {'GPU' if self.use_gpu else 'CPU'} inference.")
-
-        device_map = "auto"
-        torch_dtype = torch.float16
-
-        try:
-            model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                token=self.token,
-                trust_remote_code=True,
-                device_map=device_map,
-                torch_dtype=torch_dtype
-            )
-            tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name,
-                token=self.token,
-                trust_remote_code=True
-            )
-
-            return pipeline(
-                "text-generation",
-                model=model,
-                tokenizer=tokenizer,
-                torch_dtype=torch_dtype,
-                device_map=device_map,
-                pad_token_id=tokenizer.eos_token_id
-            )
-        except Exception as e:
-            logger.error(f"Error loading model '{self.model_name}': {e}")
-            raise e
-
-    def generate_response(self, prompt, max_new_tokens=150, num_return_sequences=1):
-        """
-        Generate a response based on the provided prompt.
-
+        Generate a response based on the provided prompt by sending a request
+        to the HPC KISSKI LLM endpoint.
         Args:
-            prompt (str): The input prompt for the model.
-            max_new_tokens (int): How many new tokens to generate (beyond the prompt).
-            num_return_sequences (int): Number of response sequences to generate.
-
+            prompt (str): The input prompt for the HPC LLM.
+            max_tokens (int): The maximum number of tokens to generate.
         Returns:
-            str: The generated response.
+            str: The generated response from the LLM.
         """
         try:
-            # Use max_new_tokens and truncation=True to allow the model to generate beyond the prompt.
-            response = self.pipeline(
-                prompt,
-                max_new_tokens=max_new_tokens,
-                num_return_sequences=num_return_sequences,
-                truncation=True
+            response = openai.ChatCompletion.create(
+                model=self.model_name,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=0.7,
             )
-            return response[0]["generated_text"].strip()
+            return response.choices[0].message.content.strip()
         except Exception as e:
             logger.error(f"Error during response generation: {e}")
             return f"Sorry, I couldn't generate a response. Error: {e}"

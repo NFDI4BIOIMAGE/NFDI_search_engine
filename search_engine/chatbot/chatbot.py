@@ -15,12 +15,12 @@ CORS(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Hardware Information
+# Hardware Information (local laptop or HPC reference; purely informational)
 SYSTEM_INFO = {
     "Machine": platform.node(),
     "Processor": platform.processor(),
-    "RAM": "64GB",
-    "GPU": "Intel Arc Graphics (shared memory: 37GB)"
+    "Local GPU": "NVIDIA RTX 500 Ada Generation Laptop GPU", 
+    "NOTE": "Inference is delegated to the HPC KISSKI LLM service."
 }
 logger.info(f"System Info: {SYSTEM_INFO}")
 
@@ -65,12 +65,11 @@ def connect_elasticsearch():
 # Connect to Elasticsearch
 es = connect_elasticsearch()
 
-# Determine if GPU should be used (if available)
-use_gpu_env = os.getenv("USE_GPU", "False").lower() == "true"
 # Initialize LLM Utilities with environment-driven model name
-model_name = os.getenv("MODEL_NAME", "meta-llama/Llama-2-7b-hf")
+# Default to "meta-llama/Meta-Llama-3.1-70B-Instruct" unless otherwise specified
+model_name = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-70B-Instruct")
 
-llm_util = LLMUtilities(model_name=model_name, use_gpu=use_gpu_env)
+llm_util = LLMUtilities(model_name=model_name)
 
 # Elasticsearch-based document retrieval
 def retrieve_documents(query, top_k=3):
@@ -96,20 +95,20 @@ def retrieve_documents(query, top_k=3):
             },
             size=top_k,
         )
-        documents = [
-            {
-                "name": hit["_source"].get("name", "Unnamed"),
-                "description": hit["_source"].get("description", "No description available"),
-                "url": hit["_source"].get("url", ""),
-            }
-            for hit in response["hits"]["hits"]
-        ]
+        documents = []
+        for hit in response["hits"]["hits"]:
+            source = hit["_source"]
+            documents.append({
+                "name": source.get("name", "Unnamed"),
+                "description": source.get("description", "No description available"),
+                "url": source.get("url", ""),
+            })
         return documents
     except Exception as e:
         logger.error(f"Error retrieving documents: {e}")
         return []
 
-# RAG-based response generation
+# RAG-based response generation (with remote HPC LLM call)
 def generate_response(query, documents):
     """
     Generates a response using retrieved documents and the query.
@@ -117,7 +116,7 @@ def generate_response(query, documents):
         query (str): The search query.
         documents (list): List of retrieved documents.
     Returns:
-        str: Generated response.
+        str: Generated response from the KISSKI LLM service.
     """
     context = "\n".join(
         [f"- {doc['name']}: {doc['description']} (URL: {doc['url']})" for doc in documents]
@@ -156,5 +155,5 @@ def chat():
 
 # Main entry point
 if __name__ == "__main__":
-    logger.info(f"Starting chatbot on {'GPU' if use_gpu_env else 'CPU'}...")
+    logger.info("Starting chatbot, using HPC KISSKI LLM endpoint for GPU inference...")
     app.run(host="0.0.0.0", port=5000, debug=True)
