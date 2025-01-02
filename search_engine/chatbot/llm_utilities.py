@@ -43,7 +43,9 @@ class LLMUtilities:
         """
         try:
             messages = [{"role": "user", "content": prompt}]
-            response = openai.chat.completions.create(
+            # the latest version of OpenAI API not working with the latest method
+            # response = openai.chat.completions.create( 
+            response = openai.ChatCompletion.create(
                 model=self.model_name,
                 messages=messages,
                 max_tokens=max_new_tokens,

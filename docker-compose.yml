@@ -61,8 +61,8 @@ services:
     environment:
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
-      - KISSKI_API_KEY=${KISSKI_API_KEY}  # Pass the KISSKI API Key
-      - USE_GPU=True    # optional; for logging or future local usage
+      - KISSKI_API_KEY=${KISSKI_API_KEY}
+      - USE_GPU=True 
       - MODEL_NAME=meta-llama-3.1-70b-instruct
     depends_on:
       elasticsearch:
