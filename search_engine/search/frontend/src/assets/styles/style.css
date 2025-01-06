@@ -688,7 +688,13 @@ mark {
 .user-bubble {
     background-color: #007bff;
     color: white;
-    text-align: right;
+    text-align: left;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 10px;
+    max-width: 70%;
+    word-wrap: break-word;
+    margin: 0;
 }
 
 .chat-input-form {
