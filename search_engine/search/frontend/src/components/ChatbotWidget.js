@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import "../assets/styles/style.css";
-import robotIcon from "../assets/images/robot.png";
+import robotAvatar from "../assets/images/avatar_robot.jpg"; // Chatbot avatar
+import userAvatar from "../assets/images/avatar_user.jpg"; // User avatar
 import axios from "axios";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [response, setResponse] = useState("");
+  const [chatHistory, setChatHistory] = useState([]);
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
@@ -18,20 +19,27 @@ const ChatbotWidget = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!query.trim()) return;
+
+    // Add user's question to chat history
+    const newChatHistory = [...chatHistory, { sender: "user", message: query }];
+    setChatHistory(newChatHistory);
+    setQuery("");
+
     try {
       const res = await axios.post("http://localhost:5002/api/chat", { query });
-      setResponse(res.data.response);
+      // Add chatbot response to chat history
+      setChatHistory([...newChatHistory, { sender: "bot", message: res.data.response }]);
     } catch (error) {
-      setResponse("Error: Unable to get a response from the chatbot.");
+      setChatHistory([...newChatHistory, { sender: "bot", message: "Error: Unable to get a response from the chatbot." }]);
     }
   };
 
-  // The return block here defines the UI structure
   return (
     <div className="chatbot-icon-container">
       <img
-        src={robotIcon}
-        alt="Chatbot Icon"
+        src={robotAvatar}
+        alt="Chatbot Avatar"
         className="chatbot-icon"
         onClick={toggleChatbot}
       />
@@ -39,21 +47,36 @@ const ChatbotWidget = () => {
         <div className="chatbot-popup">
           <div className="chatbot-header">
             <h5>NFDIBIOIMAGE Assistant</h5>
-            <button onClick={toggleChatbot}>&times;</button>
+            <button className="close-button" onClick={toggleChatbot}>&times;</button>
           </div>
           <div className="chatbot-body">
-            <form onSubmit={handleSubmit}>
-              <textarea
-                value={query}
-                onChange={handleQueryChange}
-                placeholder="Ask me anything..."
-              ></textarea>
-              <button type="submit">Send</button>
-            </form>
-            <div className="chatbot-response">
-              <p>{response}</p>
+            <div className="chat-bubbles">
+              {chatHistory.map((chat, index) => (
+                <div key={index} className={`chat-row ${chat.sender === "user" ? "user-row" : "bot-row"}`}>
+                  {chat.sender === "bot" && (
+                    <>
+                      <img src={robotAvatar} alt="Robot Avatar" className="chat-avatar" />
+                      <div className="chat-bubble chatbot-bubble">{chat.message}</div>
+                    </>
+                  )}
+                  {chat.sender === "user" && (
+                    <>
+                      <div className="chat-bubble user-bubble">{chat.message}</div>
+                      <img src={userAvatar} alt="User Avatar" className="chat-avatar" />
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
+          <form onSubmit={handleSubmit} className="chat-input-form">
+            <textarea
+              value={query}
+              onChange={handleQueryChange}
+              placeholder="Ask me anything..."
+            ></textarea>
+            <button type="submit" className="send-button">Send</button>
+          </form>
         </div>
       )}
     </div>
