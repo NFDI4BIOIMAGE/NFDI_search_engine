@@ -4,9 +4,7 @@ import robotAvatar from "../assets/images/avatar_robot.jpg";
 import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
-// Utility function to detect and render URLs as clickable links
 const renderMessageWithLinks = (message) => {
-  // Updated regex to exclude trailing parentheses unless balanced
   const urlRegex = /(https?:\/\/[^\s\)\]]*[^\s\)\]\.])/g;
   const parts = message.split(urlRegex);
 
@@ -28,14 +26,13 @@ const renderMessageWithLinks = (message) => {
   });
 };
 
-
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [isFirstOpen, setIsFirstOpen] = useState(true);
   const [isThinking, setIsThinking] = useState(false);
-  const chatContainerRef = useRef(null); // Reference for chat bubbles container
+  const chatContainerRef = useRef(null); 
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
@@ -49,7 +46,7 @@ const ChatbotWidget = () => {
       }, 500);
     }
   };
-
+  
   const handleQueryChange = (e) => {
     setQuery(e.target.value);
   };
@@ -84,11 +81,10 @@ const ChatbotWidget = () => {
   };
 
   useEffect(() => {
-    // Automatically scroll to the bottom of the chat
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [chatHistory, isThinking]); // Trigger scroll on chatHistory or isThinking change
+  }, [chatHistory, isThinking]);
 
   return (
     <div className="chatbot-icon-container">

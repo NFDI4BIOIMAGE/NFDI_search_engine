@@ -432,16 +432,16 @@
 
 /* Highlight selected filters options*/
 .highlighted {
-    background-color: #e0f4ff; /* Very light blue background for selected filters */
+    background-color: #e0f4ff;
     font-weight: bold;
-    color: #0092b3; /* Slightly darker blue text color for better contrast */
+    color: #0092b3;
     padding: 2px 4px;
     border-radius: 4px;
 }
 
 /* Highlight the filter results in materials */
 mark {
-    background-color:  #ffffcc;; /* Highlight color for matching text */
+    background-color:  #ffffcc;;
     font-weight: bold;
 }
 
@@ -520,10 +520,10 @@ mark {
 /*** Searchbar Suggestion Dropdown ***/
 .suggestion-list {
     position: absolute;
-    background-color: white; /* Set background color to make suggestions visible */
-    border: 1px solid #ccc;  /* Adds a border for better visual distinction */
-    width: 100%;  /* Ensure it takes the width of the search input */
-    z-index: 1000;  /* Ensure it stays on top of other elements */
+    background-color: white;
+    border: 1px solid #ccc;
+    width: 100%;
+    z-index: 1000;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -531,7 +531,7 @@ mark {
   
   .suggestion-list li {
     padding: 10px;
-    border-bottom: 1px solid #ccc;  /* Adds a separator between suggestions */
+    border-bottom: 1px solid #ccc;
     cursor: pointer;
     text-align: left; 
   }
@@ -545,7 +545,7 @@ mark {
   }
   
   .suggestion-list li span {
-    color: black;  /* Ensure text is visible */
+    color: black;
   }
 
   .suggestion_list_mark {
@@ -595,20 +595,20 @@ mark {
     height: 80px;
     border-radius: 50%;
     background-color: #ffffff;
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Default shadow */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden; 
-    transition: box-shadow 0.3s ease; /* Smooth transition */
+    transition: box-shadow 0.3s ease;
 }
 
 .chatbot-icon-container:hover {
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5); /* Darker shadow on hover */
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5); 
 }
 
 .chatbot-icon-container.active:hover {
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Disable hover effect when active */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -663,11 +663,11 @@ mark {
 
 .bot-row {
     justify-content: flex-start;
-    align-items: flex-start; /* Align items to the top */
+    align-items: flex-start;
 }
 
 .user-row {
-    justify-content: flex-end; /* Align user content to the right */
+    justify-content: flex-end;
 }
 
 .chat-avatar {
@@ -694,8 +694,8 @@ mark {
     border-radius: 10px;
     max-width: 70%;
     word-wrap: break-word;
-    display: inline-block; /* Ensure bubble is inline with the avatar */
-    margin: 0; /* Remove unnecessary margin */
+    display: inline-block;
+    margin: 0;
 }
 
 .user-bubble {
