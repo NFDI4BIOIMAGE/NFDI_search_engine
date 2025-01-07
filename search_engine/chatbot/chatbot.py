@@ -76,7 +76,7 @@ model_name = os.getenv("MODEL_NAME", "meta-llama-3.1-70b-instruct")
 # Initialize the LLM utility for KISSKI
 llm_util = LLMUtilities(model_name=model_name, use_gpu=use_gpu_env)
 
-def retrieve_documents(query, top_k=3):
+def retrieve_documents(query, top_k=20):
     """
     Retrieves relevant documents from Elasticsearch based on a user query.
     Args:
@@ -92,7 +92,7 @@ def retrieve_documents(query, top_k=3):
                 "query": {
                     "multi_match": {
                         "query": query,
-                        "fields": ["name^3", "description", "tags", "authors", "type", "license"],
+                        "fields": ["name^3", "description^3", "tags", "authors^3", "type", "license"],
                         "type": "best_fields",
                     }
                 }
