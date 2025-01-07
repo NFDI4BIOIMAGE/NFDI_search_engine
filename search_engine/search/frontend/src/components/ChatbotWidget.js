@@ -5,8 +5,10 @@ import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
 const renderMessageWithLinks = (message) => {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Match URLs, even when surrounded by special characters like brackets or quotes
+  const urlRegex = /(https?:\/\/[^\s\]\),]+)/g;
   const parts = message.split(urlRegex);
+  
   return parts.map((part, index) => {
     if (urlRegex.test(part)) {
       return (
@@ -24,6 +26,7 @@ const renderMessageWithLinks = (message) => {
     return <span key={index}>{part}</span>;
   });
 };
+
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
