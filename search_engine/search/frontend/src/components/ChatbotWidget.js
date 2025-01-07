@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import "../assets/styles/style.css";
 import robotAvatar from "../assets/images/avatar_robot.jpg";
 import userAvatar from "../assets/images/avatar_user.jpg";
@@ -31,6 +31,7 @@ const ChatbotWidget = () => {
   const [chatHistory, setChatHistory] = useState([]);
   const [isFirstOpen, setIsFirstOpen] = useState(true);
   const [isThinking, setIsThinking] = useState(false);
+  const chatContainerRef = useRef(null); // Reference for chat bubbles container
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
@@ -57,12 +58,12 @@ const ChatbotWidget = () => {
     setChatHistory(newChatHistory);
     setQuery("");
 
-    let thinkingTimeout = setTimeout(() => setIsThinking(true), 1000); // Trigger animation after 1 second
+    let thinkingTimeout = setTimeout(() => setIsThinking(true), 1000);
 
     try {
       const res = await axios.post("http://localhost:5002/api/chat", { query });
       clearTimeout(thinkingTimeout);
-      setIsThinking(false); // Stop thinking animation
+      setIsThinking(false);
       setChatHistory([...newChatHistory, { sender: "bot", message: res.data.response }]);
     } catch (error) {
       clearTimeout(thinkingTimeout);
@@ -70,6 +71,13 @@ const ChatbotWidget = () => {
       setChatHistory([...newChatHistory, { sender: "bot", message: "Error: Unable to get a response from the chatbot." }]);
     }
   };
+
+  useEffect(() => {
+    // Automatically scroll to the bottom of the chat
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory, isThinking]); // Trigger scroll on chatHistory or isThinking change
 
   return (
     <div className="chatbot-icon-container">
@@ -85,7 +93,7 @@ const ChatbotWidget = () => {
             <h5>NFDIBIOIMAGE Assistant</h5>
             <button className="close-button" onClick={toggleChatbot}>&times;</button>
           </div>
-          <div className="chatbot-body">
+          <div className="chatbot-body" ref={chatContainerRef}>
             <div className="chat-bubbles">
               {chatHistory.map((chat, index) => (
                 <div key={index} className={`chat-row ${chat.sender === "user" ? "user-row" : "bot-row"}`}>
