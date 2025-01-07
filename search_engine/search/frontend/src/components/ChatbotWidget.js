@@ -46,7 +46,7 @@ const ChatbotWidget = () => {
           ...prevHistory,
           { sender: "bot", message: "Hi! I'm your NFDIBIOIMAGE Assistant. How can I help you today?" }
         ]);
-      }, 550);
+      }, 500);
     }
   };
 
