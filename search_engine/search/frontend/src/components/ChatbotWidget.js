@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import "../assets/styles/style.css";
 import robotAvatar from "../assets/images/avatar_robot.jpg";
 import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
-// Utility function to detect and render URLs as clickable links
 const renderMessageWithLinks = (message) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = message.split(urlRegex);
@@ -31,10 +30,10 @@ const ChatbotWidget = () => {
   const [query, setQuery] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [isFirstOpen, setIsFirstOpen] = useState(true);
+  const [isThinking, setIsThinking] = useState(false);
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
-
     if (!isOpen && isFirstOpen && chatHistory.length === 0) {
       setIsFirstOpen(false);
       setTimeout(() => {
@@ -58,10 +57,16 @@ const ChatbotWidget = () => {
     setChatHistory(newChatHistory);
     setQuery("");
 
+    let thinkingTimeout = setTimeout(() => setIsThinking(true), 1000); // Trigger animation after 1 second
+
     try {
       const res = await axios.post("http://localhost:5002/api/chat", { query });
+      clearTimeout(thinkingTimeout);
+      setIsThinking(false); // Stop thinking animation
       setChatHistory([...newChatHistory, { sender: "bot", message: res.data.response }]);
     } catch (error) {
+      clearTimeout(thinkingTimeout);
+      setIsThinking(false);
       setChatHistory([...newChatHistory, { sender: "bot", message: "Error: Unable to get a response from the chatbot." }]);
     }
   };
@@ -100,6 +105,14 @@ const ChatbotWidget = () => {
                   )}
                 </div>
               ))}
+              {isThinking && (
+                <div className="chat-row bot-row">
+                  <img src={robotAvatar} alt="Robot Avatar" className="chat-avatar" />
+                  <div className="chat-bubble chatbot-bubble thinking-text">
+                    The assistant is thinking...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <form onSubmit={handleSubmit} className="chat-input-form">

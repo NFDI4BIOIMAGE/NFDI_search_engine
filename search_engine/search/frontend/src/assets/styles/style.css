@@ -742,3 +742,21 @@ textarea {
     background-color: #0056b3;
 }
 
+.thinking-text {
+    font-weight: bold;
+    animation: font-color-shift 1.5s ease-in-out infinite;
+}
+  
+@keyframes font-color-shift {
+    0% {
+      color: #cccccc; /* Light grey */
+    }
+    50% {
+      color: #7d7d7d; /* Slightly darker grey */
+    }
+    100% {
+      color: #cccccc; /* Back to light grey */
+    }
+}
+  
+  
