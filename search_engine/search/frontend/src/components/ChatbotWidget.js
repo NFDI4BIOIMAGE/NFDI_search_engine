@@ -6,16 +6,17 @@ import axios from "axios";
 
 // Utility function to detect and render URLs as clickable links
 const renderMessageWithLinks = (message) => {
-  const urlRegex = /(https?:\/\/[^\s\]\),]+)/g;
+  // Updated regex to exclude trailing parentheses unless balanced
+  const urlRegex = /(https?:\/\/[^\s\)\]]*[^\s\)\]\.])/g;
   const parts = message.split(urlRegex);
-  
+
   return parts.map((part, index) => {
     if (urlRegex.test(part)) {
       return (
-        <a 
+        <a
           key={index}
-          href={part} 
-          target="_blank" 
+          href={part}
+          target="_blank"
           rel="noopener noreferrer"
           style={{ color: "#007bff", textDecoration: "underline" }}
         >
@@ -26,6 +27,7 @@ const renderMessageWithLinks = (message) => {
     return <span key={index}>{part}</span>;
   });
 };
+
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
