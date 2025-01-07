@@ -4,8 +4,8 @@ import robotAvatar from "../assets/images/avatar_robot.jpg";
 import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
+// Utility function to detect and render URLs as clickable links
 const renderMessageWithLinks = (message) => {
-  // Match URLs, even when surrounded by special characters like brackets or quotes
   const urlRegex = /(https?:\/\/[^\s\]\),]+)/g;
   const parts = message.split(urlRegex);
   
@@ -26,7 +26,6 @@ const renderMessageWithLinks = (message) => {
     return <span key={index}>{part}</span>;
   });
 };
-
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,6 +71,13 @@ const ChatbotWidget = () => {
       clearTimeout(thinkingTimeout);
       setIsThinking(false);
       setChatHistory([...newChatHistory, { sender: "bot", message: "Error: Unable to get a response from the chatbot." }]);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -130,6 +136,7 @@ const ChatbotWidget = () => {
             <textarea
               value={query}
               onChange={handleQueryChange}
+              onKeyDown={handleKeyDown} // Use onKeyDown instead of onKeyPress
               placeholder="Ask me anything..."
             ></textarea>
             <button type="submit" className="send-button">Send</button>
