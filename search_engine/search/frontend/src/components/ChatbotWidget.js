@@ -4,9 +4,11 @@ import robotAvatar from "../assets/images/avatar_robot.jpg";
 import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
+// Utility function to detect and render URLs as clickable links
 const renderMessageWithLinks = (message) => {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlRegex = /(https?:\/\/[^\s\]\),]+)/g;
   const parts = message.split(urlRegex);
+  
   return parts.map((part, index) => {
     if (urlRegex.test(part)) {
       return (
@@ -72,6 +74,13 @@ const ChatbotWidget = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   useEffect(() => {
     // Automatically scroll to the bottom of the chat
     if (chatContainerRef.current) {
@@ -127,6 +136,7 @@ const ChatbotWidget = () => {
             <textarea
               value={query}
               onChange={handleQueryChange}
+              onKeyDown={handleKeyDown} // Use onKeyDown instead of onKeyPress
               placeholder="Ask me anything..."
             ></textarea>
             <button type="submit" className="send-button">Send</button>
