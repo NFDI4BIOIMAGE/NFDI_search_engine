@@ -20,7 +20,7 @@ const ChatbotWidget = () => {
           ...prevHistory,
           { sender: "bot", message: "Hi! I'm your NFDIBIOIMAGE Assistant. How can I help you today?" }
         ]);
-      }, 500); // 0.5s delay
+      }, 600); // 0.5s delay
     }
   };
 
