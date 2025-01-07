@@ -4,6 +4,28 @@ import robotAvatar from "../assets/images/avatar_robot.jpg";
 import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
+// Utility function to detect and render URLs as clickable links
+const renderMessageWithLinks = (message) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = message.split(urlRegex);
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a 
+          key={index}
+          href={part} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ color: "#007bff", textDecoration: "underline" }}
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -14,13 +36,13 @@ const ChatbotWidget = () => {
     setIsOpen(!isOpen);
 
     if (!isOpen && isFirstOpen && chatHistory.length === 0) {
-      setIsFirstOpen(false); // Ensure this happens only the first time
+      setIsFirstOpen(false);
       setTimeout(() => {
         setChatHistory((prevHistory) => [
           ...prevHistory,
           { sender: "bot", message: "Hi! I'm your NFDIBIOIMAGE Assistant. How can I help you today?" }
         ]);
-      }, 550); // 0.5s delay
+      }, 550);
     }
   };
 
@@ -65,7 +87,9 @@ const ChatbotWidget = () => {
                   {chat.sender === "bot" && (
                     <>
                       <img src={robotAvatar} alt="Robot Avatar" className="chat-avatar" />
-                      <div className="chat-bubble chatbot-bubble">{chat.message}</div>
+                      <div className="chat-bubble chatbot-bubble">
+                        {renderMessageWithLinks(chat.message)}
+                      </div>
                     </>
                   )}
                   {chat.sender === "user" && (
