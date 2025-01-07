@@ -8,14 +8,19 @@ const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
+  const [isFirstOpen, setIsFirstOpen] = useState(true);
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
-    const chatbotIcon = document.querySelector('.chatbot-icon-container');
-    if (!isOpen) {
-      chatbotIcon.classList.add('active'); // Add active class when opened
-    } else {
-      chatbotIcon.classList.remove('active'); // Remove active class when closed
+
+    if (!isOpen && isFirstOpen && chatHistory.length === 0) {
+      setIsFirstOpen(false); // Ensure this happens only the first time
+      setTimeout(() => {
+        setChatHistory((prevHistory) => [
+          ...prevHistory,
+          { sender: "bot", message: "Hi! I'm your NFDIBIOIMAGE Assistant. How can I help you today?" }
+        ]);
+      }, 500); // 0.5s delay
     }
   };
 
