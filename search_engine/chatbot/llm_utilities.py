@@ -31,7 +31,7 @@ class LLMUtilities:
             f"KISSKI LLM configured with model '{self.model_name}'. GPU usage = {self.use_gpu}."
         )
 
-    def generate_response(self, prompt, max_new_tokens=150, num_return_sequences=1):
+    def generate_response(self, prompt, max_new_tokens=500, num_return_sequences=1):
         """
         Generate a response from the KISSKI LLM service using the new openai>=1.0.0 Chat interface.
         Args:
