@@ -595,12 +595,22 @@ mark {
     height: 80px;
     border-radius: 50%;
     background-color: #ffffff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Default shadow */
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden; 
+    transition: box-shadow 0.3s ease; /* Smooth transition */
 }
+
+.chatbot-icon-container:hover {
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5); /* Darker shadow on hover */
+}
+
+.chatbot-icon-container.active:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Disable hover effect when active */
+}
+
 
 .chatbot-icon {
     width: 100%;

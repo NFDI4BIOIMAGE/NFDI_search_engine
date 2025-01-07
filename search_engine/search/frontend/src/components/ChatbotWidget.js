@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import "../assets/styles/style.css";
-import robotAvatar from "../assets/images/avatar_robot.jpg"; // Chatbot avatar
-import userAvatar from "../assets/images/avatar_user.jpg"; // User avatar
+import robotAvatar from "../assets/images/avatar_robot.jpg";
+import userAvatar from "../assets/images/avatar_user.jpg";
 import axios from "axios";
 
 const ChatbotWidget = () => {
@@ -11,6 +11,12 @@ const ChatbotWidget = () => {
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
+    const chatbotIcon = document.querySelector('.chatbot-icon-container');
+    if (!isOpen) {
+      chatbotIcon.classList.add('active'); // Add active class when opened
+    } else {
+      chatbotIcon.classList.remove('active'); // Remove active class when closed
+    }
   };
 
   const handleQueryChange = (e) => {
@@ -21,14 +27,12 @@ const ChatbotWidget = () => {
     e.preventDefault();
     if (!query.trim()) return;
 
-    // Add user's question to chat history
     const newChatHistory = [...chatHistory, { sender: "user", message: query }];
     setChatHistory(newChatHistory);
     setQuery("");
 
     try {
       const res = await axios.post("http://localhost:5002/api/chat", { query });
-      // Add chatbot response to chat history
       setChatHistory([...newChatHistory, { sender: "bot", message: res.data.response }]);
     } catch (error) {
       setChatHistory([...newChatHistory, { sender: "bot", message: "Error: Unable to get a response from the chatbot." }]);
