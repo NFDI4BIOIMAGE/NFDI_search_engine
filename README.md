@@ -24,21 +24,21 @@ To simplify the setup process, the project is containerized with Docker. Follow 
 
 2. **KISSKI API Key**: To enable the NFDIBIOIMAGE Assistant to interact with the KISSKI LLM service, you need to configure your KISSKI API key. Follow these steps to set it up:
 
-### Step 1: Obtain a KISSKI API Key
-1. Visit the official KISSKI LLM service page: [KISSKI LLM Service](https://services.kisski.de/services/en/?service=2-02-llm-service.json).
-2. Register or log in to access the service.
-3. Once registered, generate your **KISSKI API key** from the email.
+   #### Step 1: Obtain a KISSKI API Key
+   1. Visit the official KISSKI LLM service page: [KISSKI LLM Service](https://services.kisski.de/services/en/?service=2-02-llm-service.json).
+   2. Register or log in to access the service.
+   3. Once registered, generate your **KISSKI API key** from the email.
 
-### Step 2: Set Up the API Key in the Project
-1. Open the project directory in your preferred code editor.
-2. Locate the `.env` file in the root of the project. If the file doesn't exist, create a new one.
-3. Add the following line to your `.env` file:
-   ```plaintext
-   KISSKI_API_KEY=your_kisski_api_key_here
-   ```
-   Replace `your_kisski_api_key_here` with the API key you obtained from KISSKI.
+   #### Step 2: Set Up the API Key in the Project
+   1. Open the project directory in your preferred code editor.
+   2. Locate the `.env` file in the root of the project. If the file doesn't exist, create a new one.
+   3. Add the following line to your `.env` file:
+      ```plaintext
+      KISSKI_API_KEY=your_kisski_api_key_here
+      ```
+      Replace `your_kisski_api_key_here` with the API key you obtained from KISSKI.
 
-4. Save the `.env` file.
+   4. Save the `.env` file.
 
 3. **[Docker](https://www.docker.com/)** and **[Docker Compose](https://docs.docker.com/compose/install/)** installed on your machine.
 
