@@ -34,7 +34,7 @@ To simplify the setup process, the project is containerized with Docker. Follow 
    #### Step 2: Set Up the API Key in the Project
     - Open the project directory in your preferred code editor.
     - Locate the `.env` file in the root of the project. If the file doesn't exist, create a new one.
-    - Replace `your_kisski_api_key_here` with the API key you obtained from KISSKI in your `.env` file:
+    - Replace your_kisski_api_key_here in your .env file with the API key you obtained from KISSKI:
         ```plaintext
         KISSKI_API_KEY=your_kisski_api_key_here
         ```
