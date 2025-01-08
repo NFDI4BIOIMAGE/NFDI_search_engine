@@ -10,9 +10,9 @@ The project leverages several key technologies:
 - **[React](https://react.dev/learn)**: As the frontend framework for building a user-friendly interface.
 - **[Flask](https://flask.palletsprojects.com/en/latest/)**: Serving as the backend API to manage interactions with the database and Elasticsearch.
 - **[Scroll API](https://www.elastic.co/guide/en/elasticsearch/reference/current/scroll-api.html)**: Used to efficiently handle large datasets during search queries.
-- **[Chatbot Assistant](https://scads.github.io/generative-ai-notebooks/20_chatbots/10_chatbot.html)**:A conversational tool designed to assist researchers in finding and understanding relevant resources.
-- **[KISSKI LLM](https://scads.github.io/generative-ai-notebooks/15_endpoint_apis/06_kisski_endpoint.html)**: A language model that powers the Chatbot Assistant to provide intelligent responses.
-- **[Retrieval Augmented Generation](https://scads.github.io/generative-ai-notebooks/60_rag/20-simple-rag.html)**: Combines document retrieval and generation for the Chatbot Assistant to deliver contextually relevant answers.
+- **[NFDIBIOIMAGE Assistant](https://scads.github.io/generative-ai-notebooks/20_chatbots/10_chatbot.html)**: Helps researchers find relevant resources.
+- **[KISSKI LLM](https://scads.github.io/generative-ai-notebooks/15_endpoint_apis/06_kisski_endpoint.html)**: Powers intelligent chatbot responses.
+- **[Retrieval Augmented Generation](https://scads.github.io/generative-ai-notebooks/60_rag/20-simple-rag.html)**: Provides context-aware answers.
 
 ## Quick Start with Docker
 
@@ -63,7 +63,7 @@ To simplify the setup process, the project is containerized with Docker. Follow 
 
 This command will pull all necessary images, build the project, and start the containers.
 
-4. **Important**: After the initial setup, when you start the containers again by clicking the **Start** button in Docker Desktop, you will need to wait approximately **22 seconds** for Elasticsearch to fully initialize before the search engine becomes accessible.
+4. **Important**: After the initial setup, when you start the containers again by clicking the **Start** button in Docker Desktop, you will need to wait approximately **43 seconds** for Elasticsearch to fully initialize before the search engine becomes accessible.
 
 
 ## Accessing the Application
@@ -88,6 +88,17 @@ Once the Docker containers are running, you can access the application:
 
   ![Submit Materials](./images/submit_materials.png)
 
+5. **NFDIBIOIMAGE Assistant**: Click the floating chatbot icon at the bottom-right corner of the homepage to interact with the NFDIBIOIMAGE Assistant.
+
+  ![NFDIBIOIMAGE Assistant](./images/nfdibioimage_assistant.png)
+
+  - Type your question or keyword in the chat box.
+
+  ![NFDIBIOIMAGE Assistant](./images/nfdibioimage_assistant_2.png)
+
+  - Within seconds, the assistant will provide suggestions and links to relevant materials for instant access.
+
+  ![NFDIBIOIMAGE Assistant](./images/nfdibioimage_assistant_3.png)
 
 ## Features
 
@@ -96,41 +107,8 @@ Once the Docker containers are running, you can access the application:
 
 - **Material Submission**: A streamlined process for collecting and managing training materials via the submission portal.
 
-## NFDIBIOIMAGE Assistant: Your Chatbot Helper
 
-The **NFDIBIOIMAGE Assistant** is an intelligent chatbot integrated into the search engine to assist users in finding relevant materials and answering questions about the platform. This chatbot leverages **KISSKI's LLM service** and Elasticsearch to provide quick and accurate responses.
-
-### Features of the Chatbot:
-- **Context-Aware Assistance**: The chatbot retrieves and displays relevant documents based on your query, making it easier to explore related training materials.
-- **Real-Time Responses**: Powered by a large language model, the chatbot generates detailed yet concise answers in seconds.
-- **Embedded Links**: Responses include direct links to relevant materials for quick access.
-- **User-Friendly Interface**: The chatbot interface is minimal and intuitive, with features like auto-scrolling, "typing" indicators, and message highlighting.
-
-### How It Works:
-1. **Query Submission**: Users type their queries into the chatbot widget on the homepage.
-2. **Document Retrieval**: The chatbot fetches top documents from the Elasticsearch index.
-3. **Response Generation**: Based on the retrieved context, the chatbot generates a response using the KISSKI language model.
-4. **Interactive Chat**: Users can refine their queries and engage in a continuous, interactive chat.
-
-### Technologies Behind the Assistant:
-- **Flask**: Backend framework to handle API requests.
-- **Elasticsearch**: Used for document retrieval and indexing.
-- **KISSKI LLM**: Language model for generating responses.
-- **React**: Frontend framework for rendering the chatbot widget.
-- **Axios**: For asynchronous communication between frontend and backend.
-
-### How to Use the Chatbot:
-1. Click the floating chatbot icon at the bottom-right corner of the homepage.
-
-  ![NFDIBIOIMAGE Assistant Chat Example](./images/nfdibioimage_assistant.png)
-
-2. Type your question or keyword in the chat box.
-
-    ![NFDIBIOIMAGE Assistant Chat Example](./images/nfdibioimage_assistant_2.png)
-
-3. Within seconds, receive suggestions and links to relevant materials for instant access to detailed information
-
-    ![NFDIBIOIMAGE Assistant Chat Example](./images/nfdibioimage_assistant_3.png)
+- **Chatbot Assistant**: Interact with the intelligent assistant to get quick answers, suggestions, and relevant material links for your queries.
 
 
 ## Contributing
