@@ -63,7 +63,7 @@ To simplify the setup process, the project is containerized with Docker. Follow 
 
 This command will pull all necessary images, build the project, and start the containers.
 
-4. **Important**: After the initial setup, when you start the containers again by clicking the **Start** button in Docker Desktop, you will need to wait approximately **43 seconds** for Elasticsearch to fully initialize before the search engine becomes accessible.
+4. **Important**: After the initial setup, when you start the containers again by clicking the **Start** button in Docker Desktop, you will need to wait approximately **37 seconds** for Elasticsearch and the Chatbot's LLM service to fully initialize before the search engine and chatbot become accessible.
 
 
 ## Accessing the Application
