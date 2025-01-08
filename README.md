@@ -10,7 +10,9 @@ The project leverages several key technologies:
 - **[React](https://react.dev/learn)**: As the frontend framework for building a user-friendly interface.
 - **[Flask](https://flask.palletsprojects.com/en/latest/)**: Serving as the backend API to manage interactions with the database and Elasticsearch.
 - **[Scroll API](https://www.elastic.co/guide/en/elasticsearch/reference/current/scroll-api.html)**: Used to efficiently handle large datasets during search queries.
-
+- **[Chatbot Assistant](https://scads.github.io/generative-ai-notebooks/20_chatbots/10_chatbot.html)**:A conversational tool designed to assist researchers in finding and understanding relevant resources.
+- **[KISSKI LLM](https://scads.github.io/generative-ai-notebooks/15_endpoint_apis/06_kisski_endpoint.html)**: A language model that powers the Chatbot Assistant to provide intelligent responses.
+- **[Retrieval Augmented Generation](https://scads.github.io/generative-ai-notebooks/60_rag/20-simple-rag.html)**: Combines document retrieval and generation for the Chatbot Assistant to deliver contextually relevant answers.
 
 ## Quick Start with Docker
 
@@ -32,12 +34,10 @@ To simplify the setup process, the project is containerized with Docker. Follow 
    #### Step 2: Set Up the API Key in the Project
     - Open the project directory in your preferred code editor.
     - Locate the `.env` file in the root of the project. If the file doesn't exist, create a new one.
-    - Add the following line to your `.env` file:
+    - Replace `your_kisski_api_key_here` with the API key you obtained from KISSKI in your `.env` file:
         ```plaintext
         KISSKI_API_KEY=your_kisski_api_key_here
         ```
-        Replace `your_kisski_api_key_here` with the API key you obtained from KISSKI.
-
     - Save the `.env` file.
 
 3. **[Docker](https://www.docker.com/)** and **[Docker Compose](https://docs.docker.com/compose/install/)** installed on your machine.
