@@ -22,9 +22,27 @@ To simplify the setup process, the project is containerized with Docker. Follow 
    - You can refer to this [website](https://nfdi4bioimage.github.io/training/contributing/submit_app.html) for instructions on how to set up the API key or token.
    - This key/token should be securely stored and added to the necessary environment variables on your machine.
 
-2. **[Docker](https://www.docker.com/)** and **[Docker Compose](https://docs.docker.com/compose/install/)** installed on your machine.
+2. **KISSKI API Key**: To enable the NFDIBIOIMAGE Assistant to interact with the KISSKI LLM service, you need to configure your KISSKI API key. Follow these steps to set it up:
 
-3. **Currently, this project is only supported on Windows.**
+### Step 1: Obtain a KISSKI API Key
+1. Visit the official KISSKI LLM service page: [KISSKI LLM Service](https://services.kisski.de/services/en/?service=2-02-llm-service.json).
+2. Register or log in to access the service.
+3. Once registered, generate your **KISSKI API key** from the email.
+
+### Step 2: Set Up the API Key in the Project
+1. Open the project directory in your preferred code editor.
+2. Locate the `.env` file in the root of the project. If the file doesn't exist, create a new one.
+3. Add the following line to your `.env` file:
+   ```plaintext
+   KISSKI_API_KEY=your_kisski_api_key_here
+   ```
+   Replace `your_kisski_api_key_here` with the API key you obtained from KISSKI.
+
+4. Save the `.env` file.
+
+3. **[Docker](https://www.docker.com/)** and **[Docker Compose](https://docs.docker.com/compose/install/)** installed on your machine.
+
+4. **Currently, this project is only supported on Windows.**
 
 ### Setup Instructions
 
@@ -77,6 +95,52 @@ Once the Docker containers are running, you can access the application:
   
 
 - **Material Submission**: A streamlined process for collecting and managing training materials via the submission portal.
+
+
+
+To enhance your README and provide comprehensive documentation for the chatbot assistant, you could add a dedicated section for it. Here's a suggestion for how you can structure the content:
+
+---
+
+## NFDIBIOIMAGE Assistant: Your Chatbot Helper
+
+The **NFDIBIOIMAGE Assistant** is an intelligent chatbot integrated into the search engine to assist users in finding relevant materials and answering questions about the platform. This chatbot leverages **KISSKI's LLM service** and Elasticsearch to provide quick and accurate responses.
+
+### Features of the Chatbot:
+- **Context-Aware Assistance**: The chatbot retrieves and displays relevant documents based on your query, making it easier to explore related training materials.
+- **Real-Time Responses**: Powered by a large language model, the chatbot generates detailed yet concise answers in seconds.
+- **Embedded Links**: Responses include direct links to relevant materials for quick access.
+- **User-Friendly Interface**: The chatbot interface is minimal and intuitive, with features like auto-scrolling, "typing" indicators, and message highlighting.
+
+### How It Works:
+1. **Query Submission**: Users type their queries into the chatbot widget on the homepage.
+2. **Document Retrieval**: The chatbot fetches top documents from the Elasticsearch index.
+3. **Response Generation**: Based on the retrieved context, the chatbot generates a response using the KISSKI language model.
+4. **Interactive Chat**: Users can refine their queries and engage in a continuous, interactive chat.
+
+### Technologies Behind the Assistant:
+- **Flask**: Backend framework to handle API requests.
+- **Elasticsearch**: Used for document retrieval and indexing.
+- **KISSKI LLM**: Language model for generating responses.
+- **React**: Frontend framework for rendering the chatbot widget.
+- **Axios**: For asynchronous communication between frontend and backend.
+
+### Example Interaction:
+![NFDIBIOIMAGE Assistant Chat Example](./images/nfdibioimage_assistant.png)
+
+### How to Use the Chatbot:
+1. Click the floating chatbot icon at the bottom-right corner of the homepage.
+2. Type your question or keyword in the chat box.
+3. Receive instant suggestions and relevant material links.
+4. Click on links to access detailed information.
+
+### Code for the Chatbot:
+The chatbot consists of three key components:
+1. **Backend (`chatbot.py`)**: Manages query handling, document retrieval, and response generation.
+2. **LLM Utilities (`llm_utilities.py`)**: Interfaces with KISSKI's LLM API for natural language understanding.
+3. **Frontend (`ChatbotWidget.js`)**: Provides the user interface for interacting with the chatbot.
+
+
 
 
 ## Contributing
